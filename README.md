@@ -4,7 +4,7 @@ Plugin de backup para Wordpress
 
 ## Rodar localmente
 
-  docker compose up -d      # abre em https://localhost:8080
+  docker compose up -d      # abre em http://localhost:8080
   docker compose down       # para os containers
 
 ## Estrutura
