@@ -45,6 +45,7 @@ docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-dump.php" || FAILED=1
 docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-zip.php" || FAILED=1
 docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-storage.php" || FAILED=1
 docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-limits.php" || FAILED=1
+docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-restore.php" || FAILED=1
 
 step "Round-trip import"
 SQL_REMOTE=$(docker exec "$WP" sh -c "ls -t $SQL_DIR_REMOTE/*.sql 2>/dev/null | head -1")

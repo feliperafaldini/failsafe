@@ -36,6 +36,7 @@ if ( ! defined( 'FAILSAFE_RETENTION_DEFAULT' ) ) {
 require_once FAILSAFE_DIR . '/includes/storage.php';
 require_once FAILSAFE_DIR . '/includes/limits.php';
 require_once FAILSAFE_DIR . '/includes/notifications.php';
+require_once FAILSAFE_DIR . '/includes/restore.php';
 require_once FAILSAFE_DIR . '/admin/setup.php';
 require_once FAILSAFE_DIR . '/admin/format.php';
 require_once FAILSAFE_DIR . '/admin/partials.php';
@@ -45,3 +46,4 @@ require_once FAILSAFE_DIR . '/admin/backups-page.php';
 require_once FAILSAFE_DIR . '/admin/download.php';
 require_once FAILSAFE_DIR . '/admin/delete.php';
 require_once FAILSAFE_DIR . '/admin/dashboard.php';
+require_once FAILSAFE_DIR . '/admin/restore.php';
