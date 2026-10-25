@@ -13,8 +13,8 @@
 - [x] **`src/readme.txt`** — readme do diretório em inglês, com descrição, instalação, FAQ, limitações, changelog e `Upgrade Notice`. Declara `Requires at least: 6.2`, `Requires PHP: 8.0`, `Stable tag: 0.2.0` e licença GPLv2 ou superior.
 - [x] **`src/languages/failsafe.pot`** — template de tradução do text domain `failsafe`, gerado pelo WP-CLI 2.12.0. O `Domain Path: /languages` já está no cabeçalho de `src/failsafe.php`. Contém as strings do commit `3f3383e`; precisa ser regerado se o código final tiver strings novas (ver 2.2).
 - [x] **`bin/build.sh`** — gera os dois pacotes a partir de `src/`, respeitando `.distignore`, e lê a versão do cabeçalho do plugin. Exige a extensão PHP `zip` (`ZipArchive`).
-- [x] **`dist/failsafe.zip`** — layout de `trunk/`, arquivos na raiz: 21 arquivos, 47.294 bytes.
-- [x] **`dist/failsafe-0.2.0.zip`** — layout de instalador, tudo dentro de `failsafe/`: 21 arquivos, 47.672 bytes. É este que serve para o formulário de submissão e para **Plugins > Add New > Upload Plugin**.
+- [x] **`dist/failsafe.zip`** — layout de `trunk/`, arquivos na raiz: 21 arquivos, cerca de 47,7 KB.
+- [x] **`dist/failsafe-0.2.0.zip`** — layout de instalador, tudo dentro de `failsafe/`: 21 arquivos, cerca de 48 KB. É este que serve para o formulário de submissão e para **Plugins > Add New > Upload Plugin**.
 - [x] **Conteúdo do pacote** — `failsafe.php`, `readme.txt`, `uninstall.php`, `admin/`, `includes/`, `assets/admin.js` e `languages/failsafe.pot`. **Não é versionado**: `dist/` está no `.gitignore`. Regerar no commit final.
 - [x] **`tests/` e `stubs/` fora do pacote** — o build empacota apenas `src/`, então os testes e os stubs não entram no ZIP.
 - [x] **`assets/README.md`** — especifica os ícones, banners e os cinco screenshots do diretório, com dimensões e conteúdo. As imagens ainda não existem.
