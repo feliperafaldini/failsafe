@@ -1,0 +1,21 @@
+# Files that must not ship inside the plugin ZIP.
+# Used by bin/build.sh and by wp-cli dist-archive conventions.
+.git
+.gitignore
+.github
+.distignore
+.phpactor.json
+AGENTS.md
+DESIGN.md
+TASK.md
+REPORT.md
+README.md
+CHANGELOG.md
+docker-compose.yml
+stubs/
+tests/
+bin/
+*.sql
+*.zip
+*.log
+.env

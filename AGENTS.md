@@ -2,8 +2,9 @@
 
 ## Idioma
 
-- Texto, mensagens de UI e documentação em **português**.
+- Comunicação com o dono do projeto e documentação interna em **português**.
 - Código em **inglês**: nomes de variáveis, funções, constantes e comentários.
+- Strings de interface do plugin em **inglês**, dentro de `__( '...', 'failsafe' )` — o plugin vai para o diretório do WordPress.org e será traduzido.
 
 ## Padrões de código
 

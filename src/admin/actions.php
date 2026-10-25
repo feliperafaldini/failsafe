@@ -310,7 +310,7 @@ function failsafe_path_is_excluded( $pathname, array $excluded ) {
 	foreach ( $excluded as $directory ) {
 		$real_dir = realpath( $directory );
 
-		if ( false !== $real_dir && str_starts_with( $real, $real_dir . DIRECTORY_SEPARATOR ) ) {
+		if ( false !== $real_dir && 0 === strncmp( $real, $real_dir . DIRECTORY_SEPARATOR, strlen( $real_dir ) + 1 ) ) {
 			return true;
 		}
 	}
