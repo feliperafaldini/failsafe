@@ -32,9 +32,28 @@ function failsafe_handle_run_backup() {
 
 	check_admin_referer( 'failsafe_run_backup', 'failsafe_backup_nonce' );
 
-	$started = microtime( true );
-	$result  = failsafe_create_backup();
+	// A manual run must never overlap a scheduled one: both write the same files.
+	$lock = failsafe_cron_acquire_lock();
 
+	if ( is_wp_error( $lock ) ) {
+		wp_safe_redirect(
+			failsafe_backups_page_url(
+				array( 'failsafe_notice' => 'busy' )
+			)
+		);
+		exit;
+	}
+
+	$started = microtime( true );
+
+	try {
+		$result = failsafe_create_backup();
+	} finally {
+		// WP_Error, redirects and exceptions all leave through here.
+		failsafe_cron_release_lock();
+	}
+
+	// Only a run that held the lock reaches this point, so no mail for "busy".
 	failsafe_send_status_email( $result, microtime( true ) - $started );
 
 	if ( is_wp_error( $result ) ) {
@@ -192,6 +211,8 @@ function failsafe_backup_base_exists( $base ) {
 function failsafe_build_sql_dump() {
 	global $wpdb;
 
+	// SHOW TABLES takes no placeholders and the list is specific to this request.
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- The table list feeds the dump; SHOW TABLES cannot be prepared and is not worth caching.
 	$tables = $wpdb->get_col( 'SHOW TABLES' );
 
 	if ( $wpdb->last_error ) {
@@ -221,6 +242,8 @@ function failsafe_build_sql_dump() {
 	foreach ( $tables as $table ) {
 		$wpdb->last_error = '';
 
+		// Reading the DDL is required to rebuild the table; the identifier goes through %i.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- SHOW CREATE TABLE only reads the schema for the dump and cannot be prepared beyond the %i table name.
 		$create = $wpdb->get_row( $wpdb->prepare( 'SHOW CREATE TABLE %i', $table ), ARRAY_A );
 
 		if ( $wpdb->last_error ) {
@@ -235,6 +258,8 @@ function failsafe_build_sql_dump() {
 		$sql .= $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table ) . ";\n";
 		$sql .= $create['Create Table'] . ";\n\n";
 
+		// The dump needs every row of every table; the identifier is prepared with %i.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching table rows would defeat a point-in-time dump, and the table name is prepared with %i.
 		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i', $table ), ARRAY_A );
 
 		if ( $wpdb->last_error ) {
@@ -410,6 +435,7 @@ function failsafe_path_is_excluded( $pathname, array $excluded ) {
  */
 function failsafe_log( $message ) {
 	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Guarded by WP_DEBUG; this is the plugin's single log sink for admin and cron failures.
 		error_log( 'failsafe: ' . $message );
 	}
 }

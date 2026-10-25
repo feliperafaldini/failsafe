@@ -69,6 +69,7 @@ function failsafe_render_notices() {
 		'deleted'       => array( 'success', __( 'Backup deleted.', 'failsafe' ) ),
 		'delete_failed' => array( 'error', __( 'The backup could not be deleted completely. Check the site log for details.', 'failsafe' ) ),
 		'error'         => array( 'error', __( 'The backup could not be created. Check the site log for details.', 'failsafe' ) ),
+		'busy'          => array( 'warning', __( 'Another backup is already running. Wait for it to finish and try again.', 'failsafe' ) ),
 	);
 
 	if ( ! isset( $messages[ $notice ] ) ) {
