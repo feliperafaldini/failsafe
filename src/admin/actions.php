@@ -32,7 +32,10 @@ function failsafe_handle_run_backup() {
 
 	check_admin_referer( 'failsafe_run_backup', 'failsafe_backup_nonce' );
 
-	$result = failsafe_create_backup();
+	$started = microtime( true );
+	$result  = failsafe_create_backup();
+
+	failsafe_send_status_email( $result, microtime( true ) - $started );
 
 	if ( is_wp_error( $result ) ) {
 		failsafe_log( $result->get_error_code() . ': ' . $result->get_error_message() );
@@ -86,6 +89,12 @@ function failsafe_create_backup( $base = '' ) {
 
 	if ( is_wp_error( $zip_path ) ) {
 		return $zip_path;
+	}
+
+	$limits = failsafe_check_limits();
+
+	if ( is_wp_error( $limits ) ) {
+		return $limits;
 	}
 
 	$sql = failsafe_build_sql_dump();

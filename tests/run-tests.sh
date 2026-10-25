@@ -14,7 +14,7 @@ SRC="$ROOT/src"
 WP="${WP_CONTAINER:-failsafe-wordpress-1}"
 DB="${DB_CONTAINER:-failsafe-db-1}"
 TESTS_REMOTE="/tmp/failsafe-tests"
-SQL_REMOTE="/var/www/html/wp-content/failsafe-backups/failsafe-backup.sql"
+SQL_DIR_REMOTE="/var/www/html/wp-content/failsafe-backups"
 SQL_LOCAL="/tmp/failsafe-ci.sql"
 FAILED=0
 
@@ -44,9 +44,12 @@ docker cp "$ROOT/tests" "$WP:$TESTS_REMOTE" >/dev/null
 docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-dump.php" || FAILED=1
 docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-zip.php" || FAILED=1
 docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-storage.php" || FAILED=1
+docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-limits.php" || FAILED=1
 
 step "Round-trip import"
-if docker cp "$WP:$SQL_REMOTE" "$SQL_LOCAL" 2>/dev/null; then
+SQL_REMOTE=$(docker exec "$WP" sh -c "ls -t $SQL_DIR_REMOTE/*.sql 2>/dev/null | head -1")
+
+if [ -n "$SQL_REMOTE" ] && docker cp "$WP:$SQL_REMOTE" "$SQL_LOCAL" 2>/dev/null; then
 	docker exec "$DB" mariadb -uroot -p"$DB_ROOT_PASSWORD" \
 		-e 'DROP DATABASE IF EXISTS teste_ci; CREATE DATABASE teste_ci' >/dev/null 2>&1
 
