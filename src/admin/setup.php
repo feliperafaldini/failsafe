@@ -61,7 +61,7 @@ function failsafe_admin_init() {
 
 	$message = sprintf(
 		/* translators: %s: directory path. */
-		__( 'Failsafe Backup cannot use the backup directory %s. Backups will fail until this is fixed.', 'failsafe' ),
+		__( 'Failsafe Backup cannot use the backup directory %s. Backups will fail until this is fixed.', 'failsafe-backup' ),
 		$result->get_error_message()
 	);
 

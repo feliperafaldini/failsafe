@@ -3,7 +3,7 @@
  * Checks the extension points: lifecycle actions and dump/archive filters.
  *
  * Run inside the WordPress container:
- *   php /var/www/html/wp-content/plugins/failsafe/tests/test-hooks.php
+ *   php /var/www/html/wp-content/plugins/failsafe-backup/tests/test-hooks.php
  *
  * @package Failsafe
  */

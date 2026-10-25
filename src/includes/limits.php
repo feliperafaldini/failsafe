@@ -250,7 +250,7 @@ function failsafe_estimate_database_size() {
 	if ( ! is_object( $wpdb ) ) {
 		return new WP_Error(
 			'failsafe_no_database',
-			__( 'The database connection is not available.', 'failsafe' )
+			__( 'The database connection is not available.', 'failsafe-backup' )
 		);
 	}
 
@@ -314,7 +314,7 @@ function failsafe_check_limits() {
 			'failsafe_limit_memory',
 			sprintf(
 				/* translators: 1: memory required, 2: PHP memory limit. */
-				__( 'A backup needs about %1$s of memory to stream the dump and build the archive, but PHP only allows %2$s. Raise the memory_limit setting.', 'failsafe' ),
+				__( 'A backup needs about %1$s of memory to stream the dump and build the archive, but PHP only allows %2$s. Raise the memory_limit setting.', 'failsafe-backup' ),
 				size_format( $memory_needed ),
 				size_format( $memory_limit )
 			)
@@ -332,7 +332,7 @@ function failsafe_check_limits() {
 			'failsafe_limit_disk',
 			sprintf(
 				/* translators: 1: backup directory, 2: free space required, 3: free space available. */
-				__( 'The backup directory %1$s needs about %2$s of free space, but only %3$s is available. Free up disk space and try again.', 'failsafe' ),
+				__( 'The backup directory %1$s needs about %2$s of free space, but only %3$s is available. Free up disk space and try again.', 'failsafe-backup' ),
 				$directory,
 				size_format( $disk_needed ),
 				size_format( $disk_free )
@@ -348,7 +348,7 @@ function failsafe_check_limits() {
 			'failsafe_limit_time',
 			sprintf(
 				/* translators: 1: estimated duration in seconds, 2: PHP time limit in seconds. */
-				__( 'This backup is estimated to take about %1$d seconds, but PHP stops the request after %2$d seconds. Raise the max_execution_time setting or run the backup in the background.', 'failsafe' ),
+				__( 'This backup is estimated to take about %1$d seconds, but PHP stops the request after %2$d seconds. Raise the max_execution_time setting or run the backup in the background.', 'failsafe-backup' ),
 				$estimated,
 				$time_limit
 			)

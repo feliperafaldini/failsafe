@@ -54,7 +54,7 @@ function failsafe_dump_insert_batch(): int {
  */
 function failsafe_write_sql_dump( string $path ): int|WP_Error {
 	if ( '' === $path ) {
-		return new WP_Error( 'failsafe_dump_path_empty', __( 'No file was given for the SQL dump.', 'failsafe' ) );
+		return new WP_Error( 'failsafe_dump_path_empty', __( 'No file was given for the SQL dump.', 'failsafe-backup' ) );
 	}
 
 	$tables = failsafe_dump_tables();
@@ -71,7 +71,7 @@ function failsafe_write_sql_dump( string $path ): int|WP_Error {
 			'failsafe_dump_open_failed',
 			sprintf(
 				/* translators: %s: file path. */
-				__( 'Could not open %s for writing.', 'failsafe' ),
+				__( 'Could not open %s for writing.', 'failsafe-backup' ),
 				$path
 			)
 		);
@@ -95,7 +95,7 @@ function failsafe_write_sql_dump( string $path ): int|WP_Error {
 			'failsafe_dump_close_failed',
 			sprintf(
 				/* translators: %s: file path. */
-				__( 'Could not finish writing %s.', 'failsafe' ),
+				__( 'Could not finish writing %s.', 'failsafe-backup' ),
 				$path
 			)
 		);
@@ -159,7 +159,7 @@ function failsafe_dump_tables() {
 	}
 
 	if ( empty( $tables ) ) {
-		return new WP_Error( 'failsafe_no_tables', __( 'No tables found in the database.', 'failsafe' ) );
+		return new WP_Error( 'failsafe_no_tables', __( 'No tables found in the database.', 'failsafe-backup' ) );
 	}
 
 	/**
@@ -170,7 +170,7 @@ function failsafe_dump_tables() {
 	$tables = array_values( (array) apply_filters( 'failsafe_dump_tables', $tables ) );
 
 	if ( empty( $tables ) ) {
-		return new WP_Error( 'failsafe_no_tables', __( 'No tables left to dump.', 'failsafe' ) );
+		return new WP_Error( 'failsafe_no_tables', __( 'No tables left to dump.', 'failsafe-backup' ) );
 	}
 
 	return $tables;
@@ -434,7 +434,7 @@ function failsafe_dump_rows( $handle, string $table, array $key, int $chunk_size
 					'failsafe_dump_paging_stalled',
 					sprintf(
 						/* translators: %s: table name. */
-						__( 'Could not page through %s: the primary key did not advance.', 'failsafe' ),
+						__( 'Could not page through %s: the primary key did not advance.', 'failsafe-backup' ),
 						$table
 					)
 				);
@@ -493,7 +493,7 @@ function failsafe_dump_write( $handle, string $data, string $path ) {
 				'failsafe_dump_write_failed',
 				sprintf(
 					/* translators: %s: file path. */
-					__( 'Could not write to %s.', 'failsafe' ),
+					__( 'Could not write to %s.', 'failsafe-backup' ),
 					$path
 				)
 			);

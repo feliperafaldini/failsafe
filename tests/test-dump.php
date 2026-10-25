@@ -3,7 +3,7 @@
  * Unit checks for failsafe_build_sql_dump().
  *
  * Run inside the WordPress container:
- *   php /var/www/html/wp-content/plugins/failsafe/tests/test-dump.php
+ *   php /var/www/html/wp-content/plugins/failsafe-backup/tests/test-dump.php
  *
  * @package Failsafe
  */

@@ -13,7 +13,7 @@
 - SQL: palavras-chave em maiúsculas; identificador dinâmico via `$wpdb->prepare( '%i', ... )`; valor de texto via `esc_sql()` + aspas escritas à mão; valor binário/não-UTF-8 como literal hexadecimal `X'...'`.
 - Saída sempre escapada; entrada por nonce + capability (`failsafe_backup_capability()`, filtrável).
 - Toda função que pode falhar devolve `WP_Error` em vez de `exit`/`false` silencioso.
-- Mensagens de erro sempre em `__()` com o text domain `failsafe`.
+- Mensagens de erro sempre em `__()` com o text domain `failsafe-backup` (igual ao slug).
 
 ## Arquitetura
 

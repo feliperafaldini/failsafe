@@ -28,7 +28,7 @@ if ( ! function_exists( 'failsafe_parse_size' ) && is_readable( '/var/www/html/w
 
 // Last chance: the plugin is installed but was not loaded yet.
 if ( ! function_exists( 'failsafe_parse_size' ) ) {
-	$installed = '/var/www/html/wp-content/plugins/failsafe/includes/limits.php';
+	$installed = '/var/www/html/wp-content/plugins/failsafe-backup/includes/limits.php';
 
 	if ( is_readable( $installed ) ) {
 		require $installed;

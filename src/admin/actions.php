@@ -127,7 +127,7 @@ function failsafe_create_backup_now( $base = '' ) {
 	if ( '' === $base ) {
 		$base = failsafe_generate_backup_base();
 	} elseif ( ! failsafe_is_valid_backup_name( $base ) ) {
-		return new WP_Error( 'failsafe_invalid_backup', __( 'Invalid backup name.', 'failsafe' ) );
+		return new WP_Error( 'failsafe_invalid_backup', __( 'Invalid backup name.', 'failsafe-backup' ) );
 	}
 
 	if ( is_wp_error( $base ) ) {
@@ -191,7 +191,7 @@ function failsafe_generate_backup_base() {
 	$timestamp = wp_date( 'Ymd-His' );
 
 	if ( false === $timestamp ) {
-		return new WP_Error( 'failsafe_date_failed', __( 'Could not read the current time.', 'failsafe' ) );
+		return new WP_Error( 'failsafe_date_failed', __( 'Could not read the current time.', 'failsafe-backup' ) );
 	}
 
 	$base = 'failsafe-' . $timestamp;
@@ -210,7 +210,7 @@ function failsafe_generate_backup_base() {
 
 	return new WP_Error(
 		'failsafe_name_exhausted',
-		__( 'Could not find an unused backup name for this second. Try again in a moment.', 'failsafe' )
+		__( 'Could not find an unused backup name for this second. Try again in a moment.', 'failsafe-backup' )
 	);
 }
 
@@ -249,7 +249,7 @@ function failsafe_build_sql_dump() {
 	}
 
 	if ( empty( $tables ) ) {
-		return new WP_Error( 'failsafe_no_tables', __( 'No tables found in the database.', 'failsafe' ) );
+		return new WP_Error( 'failsafe_no_tables', __( 'No tables found in the database.', 'failsafe-backup' ) );
 	}
 
 	/** This filter is documented in includes/dump.php */
@@ -363,7 +363,7 @@ function failsafe_sql_value( $value ) {
  */
 function failsafe_create_zip( $sql_path, $zip_path ) {
 	if ( ! class_exists( 'ZipArchive' ) ) {
-		return new WP_Error( 'failsafe_no_ziparchive', __( 'The ZipArchive extension is not available.', 'failsafe' ) );
+		return new WP_Error( 'failsafe_no_ziparchive', __( 'The ZipArchive extension is not available.', 'failsafe-backup' ) );
 	}
 
 	$zip    = new ZipArchive();
@@ -374,7 +374,7 @@ function failsafe_create_zip( $sql_path, $zip_path ) {
 			'failsafe_zip_open',
 			sprintf(
 				/* translators: %d: ZipArchive error code. */
-				__( 'Could not open the archive (error %d).', 'failsafe' ),
+				__( 'Could not open the archive (error %d).', 'failsafe-backup' ),
 				$opened
 			)
 		);
@@ -425,7 +425,7 @@ function failsafe_create_zip( $sql_path, $zip_path ) {
 	}
 
 	if ( ! $zip->close() ) {
-		return new WP_Error( 'failsafe_zip_close', __( 'Could not finish the archive.', 'failsafe' ) );
+		return new WP_Error( 'failsafe_zip_close', __( 'Could not finish the archive.', 'failsafe-backup' ) );
 	}
 
 	if ( $add_errors > 0 ) {
@@ -433,7 +433,7 @@ function failsafe_create_zip( $sql_path, $zip_path ) {
 			'failsafe_zip_partial',
 			sprintf(
 				/* translators: %d: number of files that could not be added. */
-				__( 'The archive was written but %d files could not be added.', 'failsafe' ),
+				__( 'The archive was written but %d files could not be added.', 'failsafe-backup' ),
 				$add_errors
 			)
 		);

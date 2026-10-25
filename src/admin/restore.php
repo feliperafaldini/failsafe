@@ -20,8 +20,8 @@ add_action( 'admin_notices', 'failsafe_restore_notice' );
  */
 function failsafe_register_restore_page() {
 	add_management_page(
-		esc_html__( 'Failsafe Restore', 'failsafe' ),
-		esc_html__( 'Failsafe Restore', 'failsafe' ),
+		esc_html__( 'Failsafe Restore', 'failsafe-backup' ),
+		esc_html__( 'Failsafe Restore', 'failsafe-backup' ),
 		failsafe_backup_capability(),
 		'failsafe-restore',
 		'failsafe_render_restore_page'
@@ -51,7 +51,7 @@ function failsafe_restore_page_url( array $args = array() ) {
  */
 function failsafe_handle_restore_backup() {
 	if ( ! current_user_can( failsafe_backup_capability() ) ) {
-		wp_die( esc_html__( 'You are not allowed to restore backups.', 'failsafe' ) );
+		wp_die( esc_html__( 'You are not allowed to restore backups.', 'failsafe-backup' ) );
 	}
 
 	check_admin_referer( 'failsafe_restore_backup', 'failsafe_restore_nonce' );
@@ -59,13 +59,13 @@ function failsafe_handle_restore_backup() {
 	$base = isset( $_POST['failsafe_backup'] ) ? sanitize_text_field( wp_unslash( $_POST['failsafe_backup'] ) ) : '';
 
 	if ( ! failsafe_is_valid_backup_name( $base ) ) {
-		failsafe_redirect_restore_notice( 'error', __( 'The requested backup name is not valid. Nothing was restored.', 'failsafe' ) );
+		failsafe_redirect_restore_notice( 'error', __( 'The requested backup name is not valid. Nothing was restored.', 'failsafe-backup' ) );
 	}
 
 	$confirm = isset( $_POST['confirm'] ) ? trim( (string) sanitize_text_field( wp_unslash( $_POST['confirm'] ) ) ) : '';
 
 	if ( $confirm !== $base ) {
-		failsafe_redirect_restore_notice( 'error', __( 'The confirmation text does not match the backup name. Nothing was restored.', 'failsafe' ) );
+		failsafe_redirect_restore_notice( 'error', __( 'The confirmation text does not match the backup name. Nothing was restored.', 'failsafe-backup' ) );
 	}
 
 	$backup = failsafe_get_backup( $base );
@@ -75,13 +75,13 @@ function failsafe_handle_restore_backup() {
 	}
 
 	if ( empty( $backup['zip'] ) || (int) $backup['zip']['size'] <= 0 ) {
-		failsafe_redirect_restore_notice( 'error', __( 'The backup archive is missing or empty. Nothing was restored.', 'failsafe' ) );
+		failsafe_redirect_restore_notice( 'error', __( 'The backup archive is missing or empty. Nothing was restored.', 'failsafe-backup' ) );
 	}
 
 	$zip_path = failsafe_backup_path( $base, 'zip' );
 
 	if ( is_wp_error( $zip_path ) || ! is_readable( $zip_path ) ) {
-		failsafe_redirect_restore_notice( 'error', __( 'The backup archive cannot be read. Nothing was restored.', 'failsafe' ) );
+		failsafe_redirect_restore_notice( 'error', __( 'The backup archive cannot be read. Nothing was restored.', 'failsafe-backup' ) );
 	}
 
 	// Never overwrite the database without a fresh backup to fall back to.
@@ -117,7 +117,7 @@ function failsafe_handle_restore_backup() {
 			'error',
 			sprintf(
 				/* translators: %s: dump file name. */
-				__( 'The archive does not contain a readable %s file. Nothing was restored.', 'failsafe' ),
+				__( 'The archive does not contain a readable %s file. Nothing was restored.', 'failsafe-backup' ),
 				FAILSAFE_RESTORE_DUMP_NAME
 			)
 		);
@@ -146,7 +146,7 @@ function failsafe_handle_restore_backup() {
 		'done',
 		sprintf(
 			/* translators: %s: backup base name. */
-			__( 'The database was restored from %s. The backup was kept and the site files were not changed. You may need to sign in again.', 'failsafe' ),
+			__( 'The database was restored from %s. The backup was kept and the site files were not changed. You may need to sign in again.', 'failsafe-backup' ),
 			$base
 		)
 	);
@@ -210,7 +210,7 @@ function failsafe_restore_notice() {
 
 	$message = is_array( $notice ) && isset( $notice['message'] )
 		? (string) $notice['message']
-		: ( 'done' === $result ? __( 'The restore finished.', 'failsafe' ) : __( 'The restore failed.', 'failsafe' ) );
+		: ( 'done' === $result ? __( 'The restore finished.', 'failsafe-backup' ) : __( 'The restore failed.', 'failsafe-backup' ) );
 
 	$type = is_array( $notice ) && isset( $notice['type'] ) && in_array( $notice['type'], array( 'done', 'error' ), true )
 		? $notice['type']
@@ -230,38 +230,38 @@ function failsafe_restore_notice() {
  */
 function failsafe_render_restore_page() {
 	if ( ! current_user_can( failsafe_backup_capability() ) ) {
-		wp_die( esc_html__( 'You are not allowed to restore backups.', 'failsafe' ) );
+		wp_die( esc_html__( 'You are not allowed to restore backups.', 'failsafe-backup' ) );
 	}
 
 	$backups    = failsafe_get_backups();
 	$restorable = 0;
 
 	echo '<div class="wrap">';
-	echo '<h1>' . esc_html__( 'Failsafe Restore', 'failsafe' ) . '</h1>';
+	echo '<h1>' . esc_html__( 'Failsafe Restore', 'failsafe-backup' ) . '</h1>';
 
 	printf(
 		'<div class="notice notice-warning inline"><p>%s</p></div>',
-		esc_html__( 'Restoring replaces every table contained in the backup. A safety backup is created first, but the current database will be overwritten. Site files are not changed. Keep this tab open until the restore finishes.', 'failsafe' )
+		esc_html__( 'Restoring replaces every table contained in the backup. A safety backup is created first, but the current database will be overwritten. Site files are not changed. Keep this tab open until the restore finishes.', 'failsafe-backup' )
 	);
 
 	if ( empty( $backups ) ) {
-		echo '<p>' . esc_html__( 'No backups were found.', 'failsafe' ) . '</p>';
+		echo '<p>' . esc_html__( 'No backups were found.', 'failsafe-backup' ) . '</p>';
 		echo '</div>';
 		return;
 	}
 
 	echo '<table class="widefat striped"><thead><tr>';
-	echo '<th scope="col">' . esc_html__( 'Backup', 'failsafe' ) . '</th>';
-	echo '<th scope="col">' . esc_html__( 'Date', 'failsafe' ) . '</th>';
-	echo '<th scope="col">' . esc_html__( 'Size', 'failsafe' ) . '</th>';
-	echo '<th scope="col">' . esc_html__( 'Restore', 'failsafe' ) . '</th>';
+	echo '<th scope="col">' . esc_html__( 'Backup', 'failsafe-backup' ) . '</th>';
+	echo '<th scope="col">' . esc_html__( 'Date', 'failsafe-backup' ) . '</th>';
+	echo '<th scope="col">' . esc_html__( 'Size', 'failsafe-backup' ) . '</th>';
+	echo '<th scope="col">' . esc_html__( 'Restore', 'failsafe-backup' ) . '</th>';
 	echo '</tr></thead><tbody>';
 
 	foreach ( $backups as $backup ) {
 		$timestamp = (int) $backup['time'];
 		$date      = $timestamp > 0
 			? wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $timestamp )
-			: __( 'Unknown', 'failsafe' );
+			: __( 'Unknown', 'failsafe-backup' );
 		$has_zip   = ! empty( $backup['zip'] ) && (int) $backup['zip']['size'] > 0;
 
 		echo '<tr>';
@@ -274,7 +274,7 @@ function failsafe_render_restore_page() {
 			$restorable++;
 			failsafe_render_restore_form( $backup['base'] );
 		} else {
-			echo esc_html__( 'The archive is missing or empty.', 'failsafe' );
+			echo esc_html__( 'The archive is missing or empty.', 'failsafe-backup' );
 		}
 
 		echo '</td>';
@@ -284,7 +284,7 @@ function failsafe_render_restore_page() {
 	echo '</tbody></table>';
 
 	if ( 0 === $restorable ) {
-		echo '<p>' . esc_html__( 'None of the backups has a usable archive, so nothing can be restored right now.', 'failsafe' ) . '</p>';
+		echo '<p>' . esc_html__( 'None of the backups has a usable archive, so nothing can be restored right now.', 'failsafe-backup' ) . '</p>';
 	}
 
 	echo '</div>';
@@ -305,7 +305,7 @@ function failsafe_render_restore_form( $base ) {
 		<?php wp_nonce_field( 'failsafe_restore_backup', 'failsafe_restore_nonce' ); ?>
 		<p>
 			<label for="<?php echo esc_attr( $field_id ); ?>">
-				<?php esc_html_e( 'Type the backup name to confirm:', 'failsafe' ); ?>
+				<?php esc_html_e( 'Type the backup name to confirm:', 'failsafe-backup' ); ?>
 				<code><?php echo esc_html( $base ); ?></code>
 			</label>
 		</p>
@@ -314,7 +314,7 @@ function failsafe_render_restore_form( $base ) {
 		</p>
 		<p>
 			<button type="submit" class="button button-primary">
-				<?php esc_html_e( 'Restore database', 'failsafe' ); ?>
+				<?php esc_html_e( 'Restore database', 'failsafe-backup' ); ?>
 			</button>
 		</p>
 	</form>

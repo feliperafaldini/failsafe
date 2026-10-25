@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 function failsafe_render_backups_page() {
 	if ( ! current_user_can( failsafe_backup_capability() ) ) {
 		wp_die(
-			esc_html__( 'Sorry, you are not allowed to access this page.', 'failsafe' ),
+			esc_html__( 'Sorry, you are not allowed to access this page.', 'failsafe-backup' ),
 			'',
 			array( 'response' => 403 )
 		);
@@ -27,7 +27,7 @@ function failsafe_render_backups_page() {
 	$backups    = $filesystem ? failsafe_get_backups() : array();
 	?>
 	<div class="wrap">
-		<h1 class="wp-heading-inline"><?php esc_html_e( 'Backups', 'failsafe' ); ?></h1>
+		<h1 class="wp-heading-inline"><?php esc_html_e( 'Backups', 'failsafe-backup' ); ?></h1>
 		<?php
 		if ( ! empty( $backups ) ) {
 			failsafe_render_backup_button();
@@ -39,11 +39,11 @@ function failsafe_render_backups_page() {
 
 		<?php if ( ! $filesystem ) : ?>
 			<div class="notice notice-error">
-				<p><?php esc_html_e( 'The backup directory is not accessible to WordPress. Check the file permissions and the site log.', 'failsafe' ); ?></p>
+				<p><?php esc_html_e( 'The backup directory is not accessible to WordPress. Check the file permissions and the site log.', 'failsafe-backup' ); ?></p>
 			</div>
 		<?php elseif ( empty( $backups ) ) : ?>
-			<p><?php esc_html_e( 'No backups yet.', 'failsafe' ); ?></p>
-			<p><?php esc_html_e( 'Create a backup of your database and files to get started.', 'failsafe' ); ?></p>
+			<p><?php esc_html_e( 'No backups yet.', 'failsafe-backup' ); ?></p>
+			<p><?php esc_html_e( 'Create a backup of your database and files to get started.', 'failsafe-backup' ); ?></p>
 			<?php failsafe_render_backup_button(); ?>
 		<?php else : ?>
 			<?php failsafe_render_backups_table( $backups ); ?>
@@ -65,25 +65,25 @@ function failsafe_render_notices() {
 	$notice = isset( $_GET['failsafe_notice'] ) ? sanitize_key( wp_unslash( $_GET['failsafe_notice'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only notice code; it changes no state.
 
 	$messages = array(
-		'created'       => array( 'success', __( 'Backup created.', 'failsafe' ) ),
-		'deleted'       => array( 'success', __( 'Backup deleted.', 'failsafe' ) ),
-		'delete_failed' => array( 'error', __( 'The backup could not be deleted completely. Check the site log for details.', 'failsafe' ) ),
-		'error'         => array( 'error', __( 'The backup could not be created. Check the site log for details.', 'failsafe' ) ),
-		'busy'          => array( 'warning', __( 'Another backup is already running. Wait for it to finish and try again.', 'failsafe' ) ),
+		'created'       => array( 'success', __( 'Backup created.', 'failsafe-backup' ) ),
+		'deleted'       => array( 'success', __( 'Backup deleted.', 'failsafe-backup' ) ),
+		'delete_failed' => array( 'error', __( 'The backup could not be deleted completely. Check the site log for details.', 'failsafe-backup' ) ),
+		'error'         => array( 'error', __( 'The backup could not be created. Check the site log for details.', 'failsafe-backup' ) ),
+		'busy'          => array( 'warning', __( 'Another backup is already running. Wait for it to finish and try again.', 'failsafe-backup' ) ),
 	);
 
 	// Known failures explain themselves; anything else falls back to the generic text.
 	$error_code = isset( $_GET['failsafe_error'] ) ? sanitize_key( wp_unslash( $_GET['failsafe_error'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only error code; it changes no state.
 
 	$error_messages = array(
-		'failsafe_limit_memory'  => __( 'The backup was not created: the database is too large for the available PHP memory. Raise memory_limit or back up from a server with more memory.', 'failsafe' ),
-		'failsafe_limit_disk'    => __( 'The backup was not created: there is not enough free disk space for the archive.', 'failsafe' ),
-		'failsafe_limit_time'    => __( 'The backup was not created: the expected run time exceeds the PHP execution limit. Raise max_execution_time or run the backup from WP-Cron.', 'failsafe' ),
-		'failsafe_no_ziparchive' => __( 'The backup was not created: the PHP zip extension is not available on this server.', 'failsafe' ),
-		'failsafe_fs_unavailable' => __( 'The backup was not created: WordPress cannot write to the backup directory.', 'failsafe' ),
-		'failsafe_write_failed'  => __( 'The backup was not created: the database dump could not be written to disk.', 'failsafe' ),
-		'failsafe_zip_partial'   => __( 'The archive was written but some files could not be added. Check the site log for the list.', 'failsafe' ),
-		'failsafe_no_tables'     => __( 'The backup was not created: no database tables were found.', 'failsafe' ),
+		'failsafe_limit_memory'  => __( 'The backup was not created: the database is too large for the available PHP memory. Raise memory_limit or back up from a server with more memory.', 'failsafe-backup' ),
+		'failsafe_limit_disk'    => __( 'The backup was not created: there is not enough free disk space for the archive.', 'failsafe-backup' ),
+		'failsafe_limit_time'    => __( 'The backup was not created: the expected run time exceeds the PHP execution limit. Raise max_execution_time or run the backup from WP-Cron.', 'failsafe-backup' ),
+		'failsafe_no_ziparchive' => __( 'The backup was not created: the PHP zip extension is not available on this server.', 'failsafe-backup' ),
+		'failsafe_fs_unavailable' => __( 'The backup was not created: WordPress cannot write to the backup directory.', 'failsafe-backup' ),
+		'failsafe_write_failed'  => __( 'The backup was not created: the database dump could not be written to disk.', 'failsafe-backup' ),
+		'failsafe_zip_partial'   => __( 'The archive was written but some files could not be added. Check the site log for the list.', 'failsafe-backup' ),
+		'failsafe_no_tables'     => __( 'The backup was not created: no database tables were found.', 'failsafe-backup' ),
 	);
 
 	if ( 'error' === $notice && isset( $error_messages[ $error_code ] ) ) {
@@ -112,10 +112,10 @@ function failsafe_render_backups_table( $backups ) {
 	<table class="wp-list-table widefat fixed striped">
 		<thead>
 			<tr>
-				<th scope="col" class="column-date"><?php esc_html_e( 'Date', 'failsafe' ); ?></th>
-				<th scope="col" class="column-files"><?php esc_html_e( 'Files', 'failsafe' ); ?></th>
-				<th scope="col" class="column-size"><?php esc_html_e( 'Size', 'failsafe' ); ?></th>
-				<th scope="col" class="column-actions"><?php esc_html_e( 'Actions', 'failsafe' ); ?></th>
+				<th scope="col" class="column-date"><?php esc_html_e( 'Date', 'failsafe-backup' ); ?></th>
+				<th scope="col" class="column-files"><?php esc_html_e( 'Files', 'failsafe-backup' ); ?></th>
+				<th scope="col" class="column-size"><?php esc_html_e( 'Size', 'failsafe-backup' ); ?></th>
+				<th scope="col" class="column-actions"><?php esc_html_e( 'Actions', 'failsafe-backup' ); ?></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -133,8 +133,8 @@ function failsafe_render_backups_table( $backups ) {
 						<?php endif; ?>
 						<?php if ( ! $backup['complete'] ) : ?>
 							<p>
-								<strong><?php esc_html_e( 'Incomplete', 'failsafe' ); ?></strong><br />
-								<span class="description"><?php esc_html_e( 'One file of this set is missing. It is kept until you delete it.', 'failsafe' ); ?></span>
+								<strong><?php esc_html_e( 'Incomplete', 'failsafe-backup' ); ?></strong><br />
+								<span class="description"><?php esc_html_e( 'One file of this set is missing. It is kept until you delete it.', 'failsafe-backup' ); ?></span>
 							</p>
 						<?php endif; ?>
 					</td>
@@ -166,7 +166,7 @@ function failsafe_render_backups_footer( $backups ) {
 		printf(
 			esc_html(
 				/* translators: 1: number of backups, 2: total size on disk. */
-				_n( '%1$s backup, %2$s on disk.', '%1$s backups, %2$s on disk.', $count, 'failsafe' )
+				_n( '%1$s backup, %2$s on disk.', '%1$s backups, %2$s on disk.', $count, 'failsafe-backup' )
 			),
 			esc_html( number_format_i18n( $count ) ),
 			esc_html( failsafe_format_size( $size ) )

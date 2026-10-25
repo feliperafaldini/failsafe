@@ -43,7 +43,7 @@ function failsafe_render_backup_button() {
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="failsafe-backup-form">
 		<input type="hidden" name="action" value="failsafe_run_backup" />
 		<?php wp_nonce_field( 'failsafe_run_backup', 'failsafe_backup_nonce' ); ?>
-		<button type="submit" class="button button-primary"><?php esc_html_e( 'Backup now', 'failsafe' ); ?></button>
+		<button type="submit" class="button button-primary"><?php esc_html_e( 'Backup now', 'failsafe-backup' ); ?></button>
 	</form>
 	<?php
 }
@@ -59,13 +59,13 @@ function failsafe_render_row_actions( $backup ) {
 	<div class="failsafe-row-actions">
 		<?php if ( ! empty( $backup['zip'] ) ) : ?>
 			<a class="button button-small" href="<?php echo failsafe_get_download_url( $backup['base'], 'zip' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_nonce_url() escapes the URL. ?>">
-				<?php esc_html_e( 'Download (.zip)', 'failsafe' ); ?>
+				<?php esc_html_e( 'Download (.zip)', 'failsafe-backup' ); ?>
 			</a>
 		<?php endif; ?>
 
 		<?php if ( ! empty( $backup['sql'] ) ) : ?>
 			<a class="button button-small" href="<?php echo failsafe_get_download_url( $backup['base'], 'sql' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_nonce_url() escapes the URL. ?>">
-				<?php esc_html_e( 'Download (.sql)', 'failsafe' ); ?>
+				<?php esc_html_e( 'Download (.sql)', 'failsafe-backup' ); ?>
 			</a>
 		<?php endif; ?>
 
@@ -76,9 +76,9 @@ function failsafe_render_row_actions( $backup ) {
 			<button
 				type="submit"
 				class="button-link button-link-delete"
-				data-confirm="<?php echo esc_attr__( 'Delete this backup? This cannot be undone.', 'failsafe' ); ?>"
+				data-confirm="<?php echo esc_attr__( 'Delete this backup? This cannot be undone.', 'failsafe-backup' ); ?>"
 			>
-				<?php esc_html_e( 'Delete', 'failsafe' ); ?>
+				<?php esc_html_e( 'Delete', 'failsafe-backup' ); ?>
 			</button>
 		</form>
 	</div>

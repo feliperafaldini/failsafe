@@ -35,8 +35,8 @@ add_action( 'admin_init', 'failsafe_register_settings' );
  */
 function failsafe_register_settings_page() {
 	add_options_page(
-		__( 'Failsafe Backup', 'failsafe' ),
-		__( 'Failsafe Backup', 'failsafe' ),
+		__( 'Failsafe Backup', 'failsafe-backup' ),
+		__( 'Failsafe Backup', 'failsafe-backup' ),
 		failsafe_backup_capability(),
 		FAILSAFE_SETTINGS_PAGE,
 		'failsafe_render_settings_page'
@@ -81,14 +81,14 @@ function failsafe_register_settings() {
 
 	add_settings_section(
 		'failsafe_schedule',
-		__( 'Automatic backups', 'failsafe' ),
+		__( 'Automatic backups', 'failsafe-backup' ),
 		'failsafe_render_schedule_section',
 		FAILSAFE_SETTINGS_PAGE
 	);
 
 	add_settings_field(
 		'failsafe_schedule_enabled',
-		__( 'Schedule', 'failsafe' ),
+		__( 'Schedule', 'failsafe-backup' ),
 		'failsafe_render_schedule_enabled_field',
 		FAILSAFE_SETTINGS_PAGE,
 		'failsafe_schedule',
@@ -97,7 +97,7 @@ function failsafe_register_settings() {
 
 	add_settings_field(
 		'failsafe_schedule_frequency',
-		__( 'Frequency', 'failsafe' ),
+		__( 'Frequency', 'failsafe-backup' ),
 		'failsafe_render_frequency_field',
 		FAILSAFE_SETTINGS_PAGE,
 		'failsafe_schedule',
@@ -106,14 +106,14 @@ function failsafe_register_settings() {
 
 	add_settings_section(
 		'failsafe_storage',
-		__( 'Storage', 'failsafe' ),
+		__( 'Storage', 'failsafe-backup' ),
 		'failsafe_render_storage_section',
 		FAILSAFE_SETTINGS_PAGE
 	);
 
 	add_settings_field(
 		'failsafe_retention_count',
-		__( 'Backups to keep', 'failsafe' ),
+		__( 'Backups to keep', 'failsafe-backup' ),
 		'failsafe_render_retention_field',
 		FAILSAFE_SETTINGS_PAGE,
 		'failsafe_storage',
@@ -148,7 +148,7 @@ function failsafe_sanitize_schedule_frequency( $value ) {
 			add_settings_error(
 				'failsafe_schedule_frequency',
 				'failsafe_invalid_frequency',
-				__( 'Unknown backup frequency. The daily schedule was kept.', 'failsafe' ),
+				__( 'Unknown backup frequency. The daily schedule was kept.', 'failsafe-backup' ),
 				'error'
 			);
 		}
@@ -168,7 +168,7 @@ function failsafe_sanitize_schedule_frequency( $value ) {
 function failsafe_sanitize_retention_count( $value ) {
 	if ( ! is_numeric( $value ) ) {
 		if ( function_exists( 'add_settings_error' ) ) {
-			$message = __( 'The number of backups to keep must be a whole number. The previous value was kept.', 'failsafe' );
+			$message = __( 'The number of backups to keep must be a whole number. The previous value was kept.', 'failsafe-backup' );
 
 			add_settings_error(
 				'failsafe_retention_count',
@@ -192,7 +192,7 @@ function failsafe_sanitize_retention_count( $value ) {
 				'failsafe_retention_range',
 				sprintf(
 					/* translators: %d: number of backups that will be kept. */
-					__( 'The number of backups to keep must be between 0 and 50. Using %d.', 'failsafe' ),
+					__( 'The number of backups to keep must be between 0 and 50. Using %d.', 'failsafe-backup' ),
 					$clamped
 				),
 				'warning'
@@ -212,11 +212,11 @@ function failsafe_sanitize_retention_count( $value ) {
  */
 function failsafe_render_settings_page() {
 	if ( ! current_user_can( failsafe_backup_capability() ) ) {
-		wp_die( esc_html__( 'You are not allowed to manage backup settings.', 'failsafe' ) );
+		wp_die( esc_html__( 'You are not allowed to manage backup settings.', 'failsafe-backup' ) );
 	}
 	?>
 	<div class="wrap">
-		<h1><?php esc_html_e( 'Failsafe Backup', 'failsafe' ); ?></h1>
+		<h1><?php esc_html_e( 'Failsafe Backup', 'failsafe-backup' ); ?></h1>
 		<?php settings_errors(); ?>
 		<?php failsafe_render_cron_status(); ?>
 		<form method="post" action="<?php echo esc_url( admin_url( 'options.php' ) ); ?>">
@@ -236,11 +236,11 @@ function failsafe_render_settings_page() {
 function failsafe_render_schedule_section() {
 	$cron_note = __(
 		'Scheduled backups rely on WP-Cron, which only runs when the site receives a visit.',
-		'failsafe'
+		'failsafe-backup'
 	);
 	$late_note = __(
 		'A quiet site can run a backup late; the status below shows when the next run is due.',
-		'failsafe'
+		'failsafe-backup'
 	);
 
 	printf( '<p>%s %s</p>', esc_html( $cron_note ), esc_html( $late_note ) );
@@ -262,7 +262,7 @@ function failsafe_render_schedule_enabled_field() {
 		<?php checked( failsafe_cron_enabled() ); ?>
 	/>
 	<p class="description">
-		<?php esc_html_e( 'Run a backup automatically. Turning this off removes the scheduled event.', 'failsafe' ); ?>
+		<?php esc_html_e( 'Run a backup automatically. Turning this off removes the scheduled event.', 'failsafe-backup' ); ?>
 	</p>
 	<?php
 }
@@ -277,7 +277,7 @@ function failsafe_render_frequency_field() {
 	$frequencies = failsafe_cron_frequencies();
 	$description = __(
 		'How often automatic backups run. Changing it never adds a second event.',
-		'failsafe'
+		'failsafe-backup'
 	);
 	?>
 	<select id="failsafe_schedule_frequency" name="failsafe_schedule_frequency">
@@ -299,9 +299,9 @@ function failsafe_render_frequency_field() {
 function failsafe_render_storage_section() {
 	$description = __(
 		'Backups are stored in the site content directory and are not reachable from the web.',
-		'failsafe'
+		'failsafe-backup'
 	);
-	$retention   = __( 'The retention limit below is applied after every automatic backup.', 'failsafe' );
+	$retention   = __( 'The retention limit below is applied after every automatic backup.', 'failsafe-backup' );
 
 	printf( '<p>%s %s</p>', esc_html( $description ), esc_html( $retention ) );
 }
@@ -324,7 +324,7 @@ function failsafe_render_retention_field() {
 		class="small-text"
 	/>
 	<p class="description">
-		<?php esc_html_e( 'How many backup sets to keep. Use 0 to keep every backup.', 'failsafe' ); ?>
+		<?php esc_html_e( 'How many backup sets to keep. Use 0 to keep every backup.', 'failsafe-backup' ); ?>
 	</p>
 	<?php
 }
@@ -340,27 +340,27 @@ function failsafe_render_cron_status() {
 	if ( $status['overdue'] ) {
 		$message = sprintf(
 			/* translators: %s: date and time the backup was due. */
-			__( 'The scheduled backup is overdue. It was due on %s.', 'failsafe' ),
+			__( 'The scheduled backup is overdue. It was due on %s.', 'failsafe-backup' ),
 			failsafe_format_timestamp( $status['next_run'] )
 		);
-		$message .= ' ' . __( 'WP-Cron only runs with traffic, so a quiet site can be late.', 'failsafe' );
+		$message .= ' ' . __( 'WP-Cron only runs with traffic, so a quiet site can be late.', 'failsafe-backup' );
 
 		printf( '<div class="notice notice-error inline"><p>%s</p></div>', esc_html( $message ) );
 	} elseif ( $status['not_scheduled'] ) {
-		$message  = __( 'Automatic backups are enabled, but no event is scheduled.', 'failsafe' );
-		$message .= ' ' . __( 'Save the settings to schedule it again.', 'failsafe' );
+		$message  = __( 'Automatic backups are enabled, but no event is scheduled.', 'failsafe-backup' );
+		$message .= ' ' . __( 'Save the settings to schedule it again.', 'failsafe-backup' );
 
 		printf( '<div class="notice notice-warning inline"><p>%s</p></div>', esc_html( $message ) );
 	}
 
 	if ( $status['cron_disabled'] ) {
-		$message  = __( 'DISABLE_WP_CRON is set, so WordPress does not start scheduled tasks.', 'failsafe' );
-		$message .= ' ' . __( 'Run wp-cron.php from a system cron job to keep backups on time.', 'failsafe' );
+		$message  = __( 'DISABLE_WP_CRON is set, so WordPress does not start scheduled tasks.', 'failsafe-backup' );
+		$message .= ' ' . __( 'Run wp-cron.php from a system cron job to keep backups on time.', 'failsafe-backup' );
 
 		printf( '<div class="notice notice-warning inline"><p>%s</p></div>', esc_html( $message ) );
 	}
 
-	$next_run = __( 'Not scheduled', 'failsafe' );
+	$next_run = __( 'Not scheduled', 'failsafe-backup' );
 
 	if ( $status['next_run'] > 0 ) {
 		$next_run = failsafe_describe_next_run( $status['next_run'] );
@@ -368,19 +368,19 @@ function failsafe_render_cron_status() {
 
 	$rows = array(
 		array(
-			__( 'Automatic backups', 'failsafe' ),
-			$status['enabled'] ? __( 'Enabled', 'failsafe' ) : __( 'Disabled', 'failsafe' ),
+			__( 'Automatic backups', 'failsafe-backup' ),
+			$status['enabled'] ? __( 'Enabled', 'failsafe-backup' ) : __( 'Disabled', 'failsafe-backup' ),
 		),
 		array(
-			__( 'Last run', 'failsafe' ),
+			__( 'Last run', 'failsafe-backup' ),
 			failsafe_describe_last_run( $status['last_run'] ),
 		),
 		array(
-			__( 'Last result', 'failsafe' ),
+			__( 'Last result', 'failsafe-backup' ),
 			failsafe_describe_last_result( $status['last_result'] ),
 		),
 		array(
-			__( 'Next run', 'failsafe' ),
+			__( 'Next run', 'failsafe-backup' ),
 			$next_run,
 		),
 	);
@@ -418,12 +418,12 @@ function failsafe_format_timestamp( $timestamp ) {
  */
 function failsafe_describe_last_run( $timestamp ) {
 	if ( $timestamp <= 0 ) {
-		return __( 'Never', 'failsafe' );
+		return __( 'Never', 'failsafe-backup' );
 	}
 
 	return sprintf(
 		/* translators: 1: date and time, 2: human readable age such as "5 mins". */
-		__( '%1$s (%2$s ago)', 'failsafe' ),
+		__( '%1$s (%2$s ago)', 'failsafe-backup' ),
 		failsafe_format_timestamp( $timestamp ),
 		human_time_diff( $timestamp )
 	);
@@ -439,14 +439,14 @@ function failsafe_describe_next_run( $timestamp ) {
 	if ( $timestamp < time() ) {
 		return sprintf(
 			/* translators: %s: date and time. */
-			__( '%s (due now)', 'failsafe' ),
+			__( '%s (due now)', 'failsafe-backup' ),
 			failsafe_format_timestamp( $timestamp )
 		);
 	}
 
 	return sprintf(
 		/* translators: 1: date and time, 2: human readable wait such as "5 mins". */
-		__( '%1$s (in %2$s)', 'failsafe' ),
+		__( '%1$s (in %2$s)', 'failsafe-backup' ),
 		failsafe_format_timestamp( $timestamp ),
 		human_time_diff( $timestamp )
 	);
@@ -460,7 +460,7 @@ function failsafe_describe_next_run( $timestamp ) {
  */
 function failsafe_describe_last_result( $result ) {
 	if ( 'ok' === $result['status'] ) {
-		$text = __( 'Completed successfully.', 'failsafe' );
+		$text = __( 'Completed successfully.', 'failsafe-backup' );
 
 		if ( $result['deleted'] > 0 ) {
 			$text .= ' ' . sprintf(
@@ -469,7 +469,7 @@ function failsafe_describe_last_result( $result ) {
 					'%d older backup was removed by retention.',
 					'%d older backups were removed by retention.',
 					$result['deleted'],
-					'failsafe'
+					'failsafe-backup'
 				),
 				$result['deleted']
 			);
@@ -479,12 +479,12 @@ function failsafe_describe_last_result( $result ) {
 	}
 
 	if ( 'error' === $result['status'] ) {
-		$text = __( 'Failed.', 'failsafe' );
+		$text = __( 'Failed.', 'failsafe-backup' );
 
 		if ( '' !== $result['code'] ) {
 			$text .= ' ' . sprintf(
 				/* translators: %s: error code. */
-				__( 'Error code: %s.', 'failsafe' ),
+				__( 'Error code: %s.', 'failsafe-backup' ),
 				$result['code']
 			);
 		}
@@ -496,5 +496,5 @@ function failsafe_describe_last_result( $result ) {
 		return $text;
 	}
 
-	return __( 'No automatic backup has run yet.', 'failsafe' );
+	return __( 'No automatic backup has run yet.', 'failsafe-backup' );
 }

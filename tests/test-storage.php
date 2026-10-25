@@ -3,7 +3,7 @@
  * Unit checks for the storage layer: names, paths, listing, retention and atomic writes.
  *
  * Run inside the WordPress container:
- *   php /var/www/html/wp-content/plugins/failsafe/tests/test-storage.php
+ *   php /var/www/html/wp-content/plugins/failsafe-backup/tests/test-storage.php
  *
  * @package Failsafe
  */

@@ -65,7 +65,7 @@ O que ainda **não** existe: suporte a multisite, restauração dos arquivos do 
   - `src/admin/partials.php` — botão de backup e ações da tabela.
   - `src/uninstall.php` — limpeza das opções e, com opt-in, dos backups.
   - `src/assets/admin.js` — confirmação das ações destrutivas marcadas com `data-confirm`.
-  - `src/languages/failsafe.pot` — template de tradução.
+  - `src/languages/failsafe-backup.pot` — template de tradução.
   - `src/readme.txt` — texto do diretório do WordPress.org.
 - `bin/build.sh` — gera os dois pacotes a partir de `src/`.
 - `tests/` — lint, testes unitários, streaming, cron, configurações, round-trip e protocolo do desastre. Ficam fora de `src/` para não irem no pacote do plugin.
@@ -91,7 +91,7 @@ Os containers são `failsafe-wordpress-1` e `failsafe-db-1`. As credenciais loca
 ./bin/build.sh
 ```
 
-O script empacota `src/` em dois arquivos: `dist/failsafe.zip` (arquivos na raiz, para o `trunk/` do SVN) e `dist/failsafe-<versão>.zip` (tudo dentro de `failsafe/`, para o instalador de plugins). `src/assets/admin.js` entra nos dois; `tests/`, `stubs/`, `bin/` e os arquivos de repositório ficam fora.
+O script empacota `src/` em dois arquivos: `dist/failsafe-backup.zip` (arquivos na raiz, para o `trunk/` do SVN) e `dist/failsafe-<versão>.zip` (tudo dentro de `failsafe-backup/`, para o instalador de plugins). `src/assets/admin.js` entra nos dois; `tests/`, `stubs/`, `bin/` e os arquivos de repositório ficam fora.
 
 ## Testes
 
@@ -158,7 +158,7 @@ Um add-on de destino remoto, alerta ou restauração de arquivos se pendura em `
 
 - `failsafe_email_on_success` e `failsafe_delete_backups_on_uninstall` não têm campo nas telas; precisam ser definidas por código ou pela tabela de options.
 - A restauração não tem limite de tamanho descompactado, apenas de número de entradas (50.000) e validação de caminhos.
-- O texto oficial é em inglês, como o diretório exige; existe `src/languages/failsafe.pot`, mas nenhuma tradução publicada.
+- O texto oficial é em inglês, como o diretório exige; existe `src/languages/failsafe-backup.pot`, mas nenhuma tradução publicada.
 
 ## Roadmap
 

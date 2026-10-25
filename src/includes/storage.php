@@ -68,7 +68,7 @@ function failsafe_is_valid_backup_name( $name ) {
  */
 function failsafe_backup_path( $base, $ext ) {
 	if ( ! failsafe_is_valid_backup_name( $base ) || ! in_array( $ext, array( 'zip', 'sql' ), true ) ) {
-		return new WP_Error( 'failsafe_invalid_backup', __( 'Invalid backup name.', 'failsafe' ) );
+		return new WP_Error( 'failsafe_invalid_backup', __( 'Invalid backup name.', 'failsafe-backup' ) );
 	}
 
 	return failsafe_backup_dir() . '/' . $base . '.' . $ext;
@@ -149,13 +149,13 @@ function failsafe_get_backups() {
  */
 function failsafe_get_backup( $base ) {
 	if ( ! failsafe_is_valid_backup_name( $base ) ) {
-		return new WP_Error( 'failsafe_invalid_backup', __( 'Invalid backup name.', 'failsafe' ) );
+		return new WP_Error( 'failsafe_invalid_backup', __( 'Invalid backup name.', 'failsafe-backup' ) );
 	}
 
 	$backups = failsafe_get_backups();
 
 	if ( ! isset( $backups[ $base ] ) ) {
-		return new WP_Error( 'failsafe_backup_not_found', __( 'Backup not found.', 'failsafe' ) );
+		return new WP_Error( 'failsafe_backup_not_found', __( 'Backup not found.', 'failsafe-backup' ) );
 	}
 
 	return $backups[ $base ];
@@ -177,7 +177,7 @@ function failsafe_delete_backup( $base ) {
 	$filesystem = failsafe_fs();
 
 	if ( ! $filesystem ) {
-		return new WP_Error( 'failsafe_fs_unavailable', __( 'The filesystem is not writable by WordPress.', 'failsafe' ) );
+		return new WP_Error( 'failsafe_fs_unavailable', __( 'The filesystem is not writable by WordPress.', 'failsafe-backup' ) );
 	}
 
 	$failed = array();
@@ -199,7 +199,7 @@ function failsafe_delete_backup( $base ) {
 			'failsafe_delete_partial',
 			sprintf(
 				/* translators: %s: comma separated file types. */
-				__( 'Could not delete: %s.', 'failsafe' ),
+				__( 'Could not delete: %s.', 'failsafe-backup' ),
 				implode( ', ', $failed )
 			)
 		);
@@ -315,7 +315,7 @@ function failsafe_write_file_atomic( $path, $contents ) {
 			'failsafe_write_failed',
 			sprintf(
 				/* translators: %s: file path. */
-				__( 'Could not write %s.', 'failsafe' ),
+				__( 'Could not write %s.', 'failsafe-backup' ),
 				$temp
 			)
 		);
@@ -328,7 +328,7 @@ function failsafe_write_file_atomic( $path, $contents ) {
 
 		return new WP_Error(
 			'failsafe_fs_unavailable',
-			__( 'The filesystem is not writable by WordPress.', 'failsafe' )
+			__( 'The filesystem is not writable by WordPress.', 'failsafe-backup' )
 		);
 	}
 
@@ -339,7 +339,7 @@ function failsafe_write_file_atomic( $path, $contents ) {
 			'failsafe_rename_failed',
 			sprintf(
 				/* translators: %s: file path. */
-				__( 'Could not move %s into place.', 'failsafe' ),
+				__( 'Could not move %s into place.', 'failsafe-backup' ),
 				$path
 			)
 		);

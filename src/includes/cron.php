@@ -73,7 +73,7 @@ function failsafe_cron_schedules( $schedules ) {
 	if ( ! isset( $schedules['failsafe_weekly'] ) ) {
 		$schedules['failsafe_weekly'] = array(
 			'interval' => WEEK_IN_SECONDS,
-			'display'  => __( 'Once weekly', 'failsafe' ),
+			'display'  => __( 'Once weekly', 'failsafe-backup' ),
 		);
 	}
 
@@ -87,10 +87,10 @@ function failsafe_cron_schedules( $schedules ) {
  */
 function failsafe_cron_frequencies() {
 	$frequencies = array(
-		'hourly'          => __( 'Hourly', 'failsafe' ),
-		'twicedaily'      => __( 'Twice daily', 'failsafe' ),
-		'daily'           => __( 'Daily', 'failsafe' ),
-		'failsafe_weekly' => __( 'Weekly', 'failsafe' ),
+		'hourly'          => __( 'Hourly', 'failsafe-backup' ),
+		'twicedaily'      => __( 'Twice daily', 'failsafe-backup' ),
+		'daily'           => __( 'Daily', 'failsafe-backup' ),
+		'failsafe_weekly' => __( 'Weekly', 'failsafe-backup' ),
 	);
 
 	return (array) apply_filters( 'failsafe_cron_frequencies', $frequencies );
@@ -174,7 +174,7 @@ function failsafe_cron_schedule() {
 	if ( true !== $scheduled ) {
 		return new WP_Error(
 			'failsafe_cron_schedule_failed',
-			__( 'Could not schedule the automatic backup.', 'failsafe' )
+			__( 'Could not schedule the automatic backup.', 'failsafe-backup' )
 		);
 	}
 
@@ -246,11 +246,11 @@ function failsafe_cron_lock_timeout() {
  */
 function failsafe_cron_acquire_lock() {
 	if ( false !== get_transient( FAILSAFE_CRON_LOCK_TRANSIENT ) ) {
-		return new WP_Error( 'failsafe_cron_locked', __( 'A scheduled backup is already running.', 'failsafe' ) );
+		return new WP_Error( 'failsafe_cron_locked', __( 'A scheduled backup is already running.', 'failsafe-backup' ) );
 	}
 
 	if ( ! add_option( FAILSAFE_CRON_LOCK_OPTION, time(), '', false ) && ! failsafe_cron_take_over_stale_lock() ) {
-		return new WP_Error( 'failsafe_cron_locked', __( 'A scheduled backup is already running.', 'failsafe' ) );
+		return new WP_Error( 'failsafe_cron_locked', __( 'A scheduled backup is already running.', 'failsafe-backup' ) );
 	}
 
 	set_transient( FAILSAFE_CRON_LOCK_TRANSIENT, time(), failsafe_cron_lock_timeout() );

@@ -5,13 +5,13 @@
  * These tests never touch the database.
  *
  * Run inside the WordPress container:
- *   php /var/www/html/wp-content/plugins/failsafe/tests/test-restore.php
+ *   php /var/www/html/wp-content/plugins/failsafe-backup/tests/test-restore.php
  *
  * @package Failsafe
  */
 
 require '/var/www/html/wp-load.php';
-require_once '/var/www/html/wp-content/plugins/failsafe/includes/restore.php';
+require_once '/var/www/html/wp-content/plugins/failsafe-backup/includes/restore.php';
 require __DIR__ . '/assert.php';
 
 echo "failsafe_split_sql_statements()\n";
@@ -134,7 +134,7 @@ failsafe_assert( 'SELECT 3' === $statements[1], 'DELIMITER ; restores the defaul
 
 echo "\nfailsafe_restore_validate_entry_name()\n";
 
-failsafe_assert( ! is_wp_error( failsafe_restore_validate_entry_name( 'wp-content/plugins/failsafe/failsafe.php' ) ), 'a normal relative path is accepted' );
+failsafe_assert( ! is_wp_error( failsafe_restore_validate_entry_name( 'wp-content/plugins/failsafe-backup/failsafe.php' ) ), 'a normal relative path is accepted' );
 failsafe_assert( ! is_wp_error( failsafe_restore_validate_entry_name( 'wp-content/./failsafe.php' ) ), 'a single dot segment is accepted' );
 failsafe_assert( is_wp_error( failsafe_restore_validate_entry_name( '../evil.php' ) ), 'a leading ../ is rejected' );
 failsafe_assert( is_wp_error( failsafe_restore_validate_entry_name( 'wp-content/../../evil.php' ) ), 'a nested ../ is rejected' );
@@ -153,7 +153,7 @@ $zip      = new ZipArchive();
 
 failsafe_assert( true === $zip->open( $safe_zip, ZipArchive::CREATE | ZipArchive::OVERWRITE ), 'a test archive can be created' );
 $zip->addFromString( 'failsafe-backup.sql', "SELECT 1;\n" );
-$zip->addFromString( 'wp-content/plugins/failsafe/failsafe.php', "<?php\n" );
+$zip->addFromString( 'wp-content/plugins/failsafe-backup/failsafe.php', "<?php\n" );
 $zip->close();
 
 $extracted = failsafe_extract_backup_archive( $safe_zip );
@@ -162,7 +162,7 @@ failsafe_assert( ! is_wp_error( $extracted ), 'a clean archive is extracted' );
 
 if ( ! is_wp_error( $extracted ) ) {
 	failsafe_assert( is_readable( trailingslashit( $extracted ) . 'failsafe-backup.sql' ), 'the SQL dump is extracted' );
-	failsafe_assert( is_readable( trailingslashit( $extracted ) . 'wp-content/plugins/failsafe/failsafe.php' ), 'nested site files are extracted' );
+	failsafe_assert( is_readable( trailingslashit( $extracted ) . 'wp-content/plugins/failsafe-backup/failsafe.php' ), 'nested site files are extracted' );
 	failsafe_assert( failsafe_remove_temp_directory( $extracted ), 'the extraction directory is removed' );
 	failsafe_assert( ! file_exists( $extracted ), 'the extraction directory is gone' );
 }

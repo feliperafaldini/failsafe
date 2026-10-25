@@ -23,7 +23,7 @@ function failsafe_add_dashboard_widgets() {
 
 	wp_add_dashboard_widget(
 		'failsafe_dashboard',
-		esc_html__( 'Failsafe Backup', 'failsafe' ),
+		esc_html__( 'Failsafe Backup', 'failsafe-backup' ),
 		'failsafe_dashboard_widget_render'
 	);
 }
@@ -48,14 +48,14 @@ function failsafe_dashboard_widget_render() {
 			<?php
 			printf(
 				/* translators: 1: backup date, 2: backup size. */
-				esc_html__( 'Last backup: %1$s (%2$s).', 'failsafe' ),
+				esc_html__( 'Last backup: %1$s (%2$s).', 'failsafe-backup' ),
 				esc_html( failsafe_format_time( (int) $latest['time'] ) ),
 				esc_html( failsafe_format_size( (int) $latest['size'] ) )
 			);
 			?>
 		</p>
 	<?php else : ?>
-		<p><?php esc_html_e( 'No backups yet.', 'failsafe' ); ?></p>
+		<p><?php esc_html_e( 'No backups yet.', 'failsafe-backup' ); ?></p>
 	<?php endif; ?>
 
 	<p>
@@ -63,7 +63,7 @@ function failsafe_dashboard_widget_render() {
 		printf(
 			esc_html(
 				/* translators: 1: number of backups, 2: total size on disk. */
-				_n( '%1$s backup, %2$s on disk.', '%1$s backups, %2$s on disk.', $count, 'failsafe' )
+				_n( '%1$s backup, %2$s on disk.', '%1$s backups, %2$s on disk.', $count, 'failsafe-backup' )
 			),
 			esc_html( number_format_i18n( $count ) ),
 			esc_html( failsafe_format_size( $total ) )
@@ -73,7 +73,7 @@ function failsafe_dashboard_widget_render() {
 
 	<p>
 		<a href="<?php echo esc_url( failsafe_backups_page_url() ); ?>">
-			<?php esc_html_e( 'View all backups', 'failsafe' ); ?>
+			<?php esc_html_e( 'View all backups', 'failsafe-backup' ); ?>
 		</a>
 	</p>
 

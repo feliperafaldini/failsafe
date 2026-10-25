@@ -447,7 +447,7 @@ function failsafe_restore_database( string $sql ) {
 	$statements = failsafe_split_sql_statements( $sql );
 
 	if ( empty( $statements ) ) {
-		return new WP_Error( 'failsafe_restore_empty', __( 'The dump does not contain any SQL statement.', 'failsafe' ) );
+		return new WP_Error( 'failsafe_restore_empty', __( 'The dump does not contain any SQL statement.', 'failsafe-backup' ) );
 	}
 
 	$total    = count( $statements );
@@ -490,7 +490,7 @@ function failsafe_restore_database_from_file( string $path ) {
 			'failsafe_restore_file_unreadable',
 			sprintf(
 				/* translators: %s: path of the SQL dump. */
-				__( 'The database dump %s cannot be read.', 'failsafe' ),
+				__( 'The database dump %s cannot be read.', 'failsafe-backup' ),
 				$path
 			)
 		);
@@ -504,7 +504,7 @@ function failsafe_restore_database_from_file( string $path ) {
 			'failsafe_restore_file_open_failed',
 			sprintf(
 				/* translators: %s: path of the SQL dump. */
-				__( 'Could not open the database dump %s.', 'failsafe' ),
+				__( 'Could not open the database dump %s.', 'failsafe-backup' ),
 				$path
 			)
 		);
@@ -533,7 +533,7 @@ function failsafe_restore_database_from_file( string $path ) {
 					'failsafe_restore_file_read_failed',
 					sprintf(
 						/* translators: 1: path of the SQL dump, 2: number of bytes read before the failure. */
-						__( 'The database dump %1$s could not be read after %2$d bytes.', 'failsafe' ),
+						__( 'The database dump %1$s could not be read after %2$d bytes.', 'failsafe-backup' ),
 						$path,
 						$bytes_read
 					)
@@ -571,7 +571,7 @@ function failsafe_restore_database_from_file( string $path ) {
 		}
 
 		if ( 0 === $position ) {
-			return new WP_Error( 'failsafe_restore_empty', __( 'The dump does not contain any SQL statement.', 'failsafe' ) );
+			return new WP_Error( 'failsafe_restore_empty', __( 'The dump does not contain any SQL statement.', 'failsafe-backup' ) );
 		}
 	} finally {
 		failsafe_restore_end_bulk();
@@ -638,13 +638,13 @@ function failsafe_restore_execute_statement( string $statement, int $position, ?
 		$message = null === $total
 			? sprintf(
 				/* translators: 1: statement number, 2: truncated SQL command. */
-				__( 'Restore stopped at statement %1$d: this statement type is not allowed. Command: %2$s', 'failsafe' ),
+				__( 'Restore stopped at statement %1$d: this statement type is not allowed. Command: %2$s', 'failsafe-backup' ),
 				$position,
 				failsafe_restore_statement_excerpt( $statement )
 			)
 			: sprintf(
 				/* translators: 1: statement number, 2: total number of statements, 3: truncated SQL command. */
-				__( 'Restore stopped at statement %1$d of %2$d: this statement type is not allowed. Command: %3$s', 'failsafe' ),
+				__( 'Restore stopped at statement %1$d of %2$d: this statement type is not allowed. Command: %3$s', 'failsafe-backup' ),
 				$position,
 				$total,
 				failsafe_restore_statement_excerpt( $statement )
@@ -661,7 +661,7 @@ function failsafe_restore_execute_statement( string $statement, int $position, ?
 		return true;
 	}
 
-	$error = '' !== $wpdb->last_error ? $wpdb->last_error : __( 'unknown database error', 'failsafe' );
+	$error = '' !== $wpdb->last_error ? $wpdb->last_error : __( 'unknown database error', 'failsafe-backup' );
 
 	if ( failsafe_restore_is_best_effort_statement( $statement ) ) {
 		failsafe_log(
@@ -678,14 +678,14 @@ function failsafe_restore_execute_statement( string $statement, int $position, ?
 		null === $total
 			? sprintf(
 				/* translators: 1: statement number, 2: database error message, 3: truncated SQL command. */
-				__( 'Restore stopped at statement %1$d: %2$s. Command: %3$s', 'failsafe' ),
+				__( 'Restore stopped at statement %1$d: %2$s. Command: %3$s', 'failsafe-backup' ),
 				$position,
 				$error,
 				failsafe_restore_statement_excerpt( $statement )
 			)
 			: sprintf(
 				/* translators: 1: statement number, 2: total number of statements, 3: database error message, 4: truncated SQL command. */
-				__( 'Restore stopped at statement %1$d of %2$d: %3$s. Command: %4$s', 'failsafe' ),
+				__( 'Restore stopped at statement %1$d of %2$d: %3$s. Command: %4$s', 'failsafe-backup' ),
 				$position,
 				$total,
 				$error,
@@ -786,7 +786,7 @@ function failsafe_create_restore_safety_backup() {
 	if ( ! function_exists( 'failsafe_create_backup' ) ) {
 		return new WP_Error(
 			'failsafe_restore_no_runner',
-			__( 'The backup routine is not available, so the restore was aborted.', 'failsafe' )
+			__( 'The backup routine is not available, so the restore was aborted.', 'failsafe-backup' )
 		);
 	}
 
@@ -797,7 +797,7 @@ function failsafe_create_restore_safety_backup() {
 			'failsafe_restore_safety_backup_failed',
 			sprintf(
 				/* translators: %s: database or filesystem error message. */
-				__( 'The safety backup could not be created, so the restore was aborted: %s', 'failsafe' ),
+				__( 'The safety backup could not be created, so the restore was aborted: %s', 'failsafe-backup' ),
 				$result->get_error_message()
 			)
 		);
@@ -819,7 +819,7 @@ function failsafe_create_restore_safety_backup() {
  */
 function failsafe_extract_backup_archive( string $zip_path, string $target_dir = '' ) {
 	if ( ! class_exists( 'ZipArchive' ) ) {
-		return new WP_Error( 'failsafe_no_ziparchive', __( 'The ZipArchive extension is not available.', 'failsafe' ) );
+		return new WP_Error( 'failsafe_no_ziparchive', __( 'The ZipArchive extension is not available.', 'failsafe-backup' ) );
 	}
 
 	if ( ! is_readable( $zip_path ) ) {
@@ -827,7 +827,7 @@ function failsafe_extract_backup_archive( string $zip_path, string $target_dir =
 			'failsafe_restore_zip_unreadable',
 			sprintf(
 				/* translators: %s: archive path. */
-				__( 'The backup archive %s cannot be read.', 'failsafe' ),
+				__( 'The backup archive %s cannot be read.', 'failsafe-backup' ),
 				$zip_path
 			)
 		);
@@ -842,7 +842,7 @@ function failsafe_extract_backup_archive( string $zip_path, string $target_dir =
 			'failsafe_restore_temp_failed',
 			sprintf(
 				/* translators: %s: directory path. */
-				__( 'Could not create the temporary directory %s.', 'failsafe' ),
+				__( 'Could not create the temporary directory %s.', 'failsafe-backup' ),
 				$target_dir
 			)
 		);
@@ -859,7 +859,7 @@ function failsafe_extract_backup_archive( string $zip_path, string $target_dir =
 
 		return new WP_Error(
 			'failsafe_restore_temp_inside_root',
-			__( 'The extraction directory must live outside the WordPress installation.', 'failsafe' )
+			__( 'The extraction directory must live outside the WordPress installation.', 'failsafe-backup' )
 		);
 	}
 
@@ -873,7 +873,7 @@ function failsafe_extract_backup_archive( string $zip_path, string $target_dir =
 			'failsafe_restore_zip_open',
 			sprintf(
 				/* translators: %d: ZipArchive error code. */
-				__( 'Could not open the backup archive (error %d).', 'failsafe' ),
+				__( 'Could not open the backup archive (error %d).', 'failsafe-backup' ),
 				$opened
 			)
 		);
@@ -883,7 +883,7 @@ function failsafe_extract_backup_archive( string $zip_path, string $target_dir =
 		return failsafe_restore_abort_extraction(
 			$zip,
 			$target_dir,
-			new WP_Error( 'failsafe_restore_zip_empty', __( 'The backup archive is empty.', 'failsafe' ) )
+			new WP_Error( 'failsafe_restore_zip_empty', __( 'The backup archive is empty.', 'failsafe-backup' ) )
 		);
 	}
 
@@ -897,7 +897,7 @@ function failsafe_extract_backup_archive( string $zip_path, string $target_dir =
 				'failsafe_restore_zip_too_large',
 				sprintf(
 					/* translators: 1: number of entries, 2: maximum number of entries. */
-					__( 'The archive has %1$d entries and exceeds the limit of %2$d.', 'failsafe' ),
+					__( 'The archive has %1$d entries and exceeds the limit of %2$d.', 'failsafe-backup' ),
 					(int) $zip->numFiles,
 					$max_entries
 				)
@@ -912,7 +912,7 @@ function failsafe_extract_backup_archive( string $zip_path, string $target_dir =
 			return failsafe_restore_abort_extraction(
 				$zip,
 				$target_dir,
-				new WP_Error( 'failsafe_restore_entry_unreadable', __( 'An archive entry could not be read.', 'failsafe' ) )
+				new WP_Error( 'failsafe_restore_entry_unreadable', __( 'An archive entry could not be read.', 'failsafe-backup' ) )
 			);
 		}
 
@@ -926,7 +926,7 @@ function failsafe_extract_backup_archive( string $zip_path, string $target_dir =
 					'failsafe_restore_entry_rejected',
 					sprintf(
 						/* translators: 1: archive entry name, 2: rejection reason. */
-						__( 'The archive entry %1$s was rejected: %2$s', 'failsafe' ),
+						__( 'The archive entry %1$s was rejected: %2$s', 'failsafe-backup' ),
 						$name,
 						$valid->get_error_message()
 					)
@@ -942,7 +942,7 @@ function failsafe_extract_backup_archive( string $zip_path, string $target_dir =
 					'failsafe_restore_entry_symlink',
 					sprintf(
 						/* translators: %s: archive entry name. */
-						__( 'The archive entry %s is a symbolic link, which is not allowed.', 'failsafe' ),
+						__( 'The archive entry %s is a symbolic link, which is not allowed.', 'failsafe-backup' ),
 						$name
 					)
 				)
@@ -957,7 +957,7 @@ function failsafe_extract_backup_archive( string $zip_path, string $target_dir =
 			return failsafe_restore_abort_extraction(
 				$zip,
 				$target_dir,
-				new WP_Error( 'failsafe_restore_entry_unreadable', __( 'An archive entry could not be read.', 'failsafe' ) )
+				new WP_Error( 'failsafe_restore_entry_unreadable', __( 'An archive entry could not be read.', 'failsafe-backup' ) )
 			);
 		}
 
@@ -972,7 +972,7 @@ function failsafe_extract_backup_archive( string $zip_path, string $target_dir =
 						'failsafe_restore_extract_failed',
 						sprintf(
 							/* translators: %s: directory path. */
-							__( 'Could not create the extracted directory %s.', 'failsafe' ),
+							__( 'Could not create the extracted directory %s.', 'failsafe-backup' ),
 							$directory
 						)
 					)
@@ -992,7 +992,7 @@ function failsafe_extract_backup_archive( string $zip_path, string $target_dir =
 					'failsafe_restore_extract_failed',
 					sprintf(
 						/* translators: %s: directory path. */
-						__( 'Could not create the extracted directory %s.', 'failsafe' ),
+						__( 'Could not create the extracted directory %s.', 'failsafe-backup' ),
 						$real_target . DIRECTORY_SEPARATOR . $parent
 					)
 				)
@@ -1007,7 +1007,7 @@ function failsafe_extract_backup_archive( string $zip_path, string $target_dir =
 					'failsafe_restore_extract_failed',
 					sprintf(
 						/* translators: %s: archive entry name. */
-						__( 'Could not extract the archive entry %s.', 'failsafe' ),
+						__( 'Could not extract the archive entry %s.', 'failsafe-backup' ),
 						$name
 					)
 				)
@@ -1045,7 +1045,7 @@ function failsafe_restore_validate_entry_name( string $name ) {
 	if ( '' === $name || str_contains( $name, "\0" ) ) {
 		return new WP_Error(
 			'failsafe_restore_entry_invalid',
-			__( 'the entry name is empty or contains a null byte.', 'failsafe' )
+			__( 'the entry name is empty or contains a null byte.', 'failsafe-backup' )
 		);
 	}
 
@@ -1054,14 +1054,14 @@ function failsafe_restore_validate_entry_name( string $name ) {
 	if ( str_starts_with( $normalized, '/' ) ) {
 		return new WP_Error(
 			'failsafe_restore_entry_absolute',
-			__( 'absolute paths are not allowed.', 'failsafe' )
+			__( 'absolute paths are not allowed.', 'failsafe-backup' )
 		);
 	}
 
 	if ( 1 === preg_match( '/^[A-Za-z]:/', $normalized ) ) {
 		return new WP_Error(
 			'failsafe_restore_entry_absolute',
-			__( 'absolute Windows paths are not allowed.', 'failsafe' )
+			__( 'absolute Windows paths are not allowed.', 'failsafe-backup' )
 		);
 	}
 
@@ -1069,7 +1069,7 @@ function failsafe_restore_validate_entry_name( string $name ) {
 		if ( '..' === $segment ) {
 			return new WP_Error(
 				'failsafe_restore_entry_traversal',
-				__( 'parent directory references are not allowed.', 'failsafe' )
+				__( 'parent directory references are not allowed.', 'failsafe-backup' )
 			);
 		}
 	}

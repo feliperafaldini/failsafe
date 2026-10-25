@@ -87,9 +87,9 @@ function failsafe_status_email_site_name() {
 function failsafe_status_email_subject( $failed ) {
 	return sprintf(
 		/* translators: 1: site name, 2: backup status ("failed" or "completed"). */
-		__( '[%1$s] Failsafe Backup %2$s', 'failsafe' ),
+		__( '[%1$s] Failsafe Backup %2$s', 'failsafe-backup' ),
 		failsafe_status_email_site_name(),
-		$failed ? __( 'failed', 'failsafe' ) : __( 'completed', 'failsafe' )
+		$failed ? __( 'failed', 'failsafe-backup' ) : __( 'completed', 'failsafe-backup' )
 	);
 }
 
@@ -111,16 +111,16 @@ function failsafe_status_email_body( $result, $duration = null ) {
 	$lines   = array();
 	$lines[] = sprintf(
 		/* translators: %s: site URL. */
-		__( 'Site: %s', 'failsafe' ),
+		__( 'Site: %s', 'failsafe-backup' ),
 		home_url()
 	);
 	$lines[] = '';
 
 	if ( is_wp_error( $result ) ) {
-		$lines[] = __( 'Status: failed', 'failsafe' );
+		$lines[] = __( 'Status: failed', 'failsafe-backup' );
 		$lines[] = sprintf(
 			/* translators: 1: error code, 2: error message. */
-			__( 'Error: %1$s (%2$s)', 'failsafe' ),
+			__( 'Error: %1$s (%2$s)', 'failsafe-backup' ),
 			$result->get_error_code(),
 			$result->get_error_message()
 		);
@@ -132,19 +132,19 @@ function failsafe_status_email_body( $result, $duration = null ) {
 			if ( ! is_wp_error( $estimated ) ) {
 				$lines[] = sprintf(
 					/* translators: %s: estimated database size. */
-					__( 'Database (estimated): %s', 'failsafe' ),
+					__( 'Database (estimated): %s', 'failsafe-backup' ),
 					size_format( max( 0, (int) $estimated ), 1 )
 				);
 			}
 		}
 	} else {
-		$lines[] = __( 'Status: completed', 'failsafe' );
+		$lines[] = __( 'Status: completed', 'failsafe-backup' );
 
 		if ( is_array( $result ) ) {
 			if ( isset( $result['sql_bytes'] ) ) {
 				$lines[] = sprintf(
 					/* translators: %s: database dump size. */
-					__( 'Database dump: %s', 'failsafe' ),
+					__( 'Database dump: %s', 'failsafe-backup' ),
 					size_format( max( 0, (int) $result['sql_bytes'] ), 1 )
 				);
 			}
@@ -152,7 +152,7 @@ function failsafe_status_email_body( $result, $duration = null ) {
 			if ( isset( $result['zip_bytes'] ) ) {
 				$lines[] = sprintf(
 					/* translators: %s: archive size. */
-					__( 'Archive: %s', 'failsafe' ),
+					__( 'Archive: %s', 'failsafe-backup' ),
 					size_format( max( 0, (int) $result['zip_bytes'] ), 1 )
 				);
 			}
@@ -160,7 +160,7 @@ function failsafe_status_email_body( $result, $duration = null ) {
 			if ( isset( $result['zip_path'] ) ) {
 				$lines[] = sprintf(
 					/* translators: %s: archive path. */
-					__( 'Archive file: %s', 'failsafe' ),
+					__( 'Archive file: %s', 'failsafe-backup' ),
 					(string) $result['zip_path']
 				);
 			}
@@ -170,14 +170,14 @@ function failsafe_status_email_body( $result, $duration = null ) {
 	if ( null !== $duration ) {
 		$lines[] = sprintf(
 			/* translators: %s: duration in seconds. */
-			__( 'Duration: %s seconds', 'failsafe' ),
+			__( 'Duration: %s seconds', 'failsafe-backup' ),
 			number_format_i18n( max( 0, (float) $duration ), 1 )
 		);
 	}
 
 	if ( is_wp_error( $result ) ) {
 		$lines[] = '';
-		$lines[] = __( 'Check the site log for more details.', 'failsafe' );
+		$lines[] = __( 'Check the site log for more details.', 'failsafe-backup' );
 	}
 
 	return implode( "\n", $lines ) . "\n";

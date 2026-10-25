@@ -11,11 +11,11 @@
 ### 1.1 O que já está pronto
 
 - [x] **`src/readme.txt`** — readme do diretório em inglês, com descrição, instalação, FAQ, limitações, changelog e `Upgrade Notice`. Declara `Requires at least: 6.2`, `Requires PHP: 8.0`, `Stable tag: 0.2.0` e licença GPLv2 ou superior.
-- [x] **`src/languages/failsafe.pot`** — template de tradução do text domain `failsafe`, gerado pelo WP-CLI 2.12.0. O `Domain Path: /languages` já está no cabeçalho de `src/failsafe.php`. Contém as strings do commit `3f3383e`; precisa ser regerado se o código final tiver strings novas (ver 2.2).
+- [x] **`src/languages/failsafe-backup.pot`** — template de tradução do text domain `failsafe-backup`, gerado pelo WP-CLI 2.12.0. O `Domain Path: /languages` já está no cabeçalho de `src/failsafe.php`. Contém as strings do commit `3f3383e`; precisa ser regerado se o código final tiver strings novas (ver 2.2).
 - [x] **`bin/build.sh`** — gera os dois pacotes a partir de `src/`, respeitando `.distignore`, e lê a versão do cabeçalho do plugin. Exige a extensão PHP `zip` (`ZipArchive`).
-- [x] **`dist/failsafe.zip`** — layout de `trunk/`, arquivos na raiz: 21 arquivos, cerca de 47,7 KB.
-- [x] **`dist/failsafe-0.2.0.zip`** — layout de instalador, tudo dentro de `failsafe/`: 21 arquivos, cerca de 48 KB. É este que serve para o formulário de submissão e para **Plugins > Add New > Upload Plugin**.
-- [x] **Conteúdo do pacote** — `failsafe.php`, `readme.txt`, `uninstall.php`, `admin/`, `includes/`, `assets/admin.js` e `languages/failsafe.pot`. **Não é versionado**: `dist/` está no `.gitignore`. Regerar no commit final.
+- [x] **`dist/failsafe-backup.zip`** — layout de `trunk/`, arquivos na raiz: 22 arquivos, cerca de 56,8 KB.
+- [x] **`dist/failsafe-backup-0.2.0.zip`** — layout de instalador, tudo dentro de `failsafe-backup/`: 22 arquivos, cerca de 57,5 KB. É este que serve para o formulário de submissão e para **Plugins > Add New > Upload Plugin**.
+- [x] **Conteúdo do pacote** — `failsafe.php`, `readme.txt`, `uninstall.php`, `admin/`, `includes/`, `assets/admin.js` e `languages/failsafe-backup.pot`. **Não é versionado**: `dist/` está no `.gitignore`. Regerar no commit final.
 - [x] **`tests/` e `stubs/` fora do pacote** — o build empacota apenas `src/`, então os testes e os stubs não entram no ZIP.
 - [x] **`assets/README.md`** — especifica os ícones, banners e os cinco screenshots do diretório, com dimensões e conteúdo. As imagens ainda não existem.
 - [x] **Cabeçalho do plugin** — `src/failsafe.php` declara `Version: 0.2.0`, `Requires at least: 6.2`, `Requires PHP: 8.0`, `Text Domain: failsafe` e `Domain Path: /languages`.
@@ -30,8 +30,8 @@
   docker exec -u www-data failsafe-wordpress-1 php /tmp/wp-cli.phar --path=/var/www/html plugin check failsafe --format=table
   ```
   Execução de 2026-10-24 contra o plugin montado: com o código desta branch (commit `3f3383e`), **8 `ERROR` e 13 `WARNING`**; com as correções já presentes na master (commit `5d202ec`), **`Success: Checks complete. No errors found.`** O envio exige a segunda saída no commit que for para o trunk. Reexecutar depois de mesclar as correções e não fechar este item enquanto houver `ERROR`.
-- [x] **ZIP do formulário de submissão** — `./bin/build.sh` agora gera `dist/failsafe-0.2.0.zip` com a pasta `failsafe/` na raiz, que é o formato aceito pelo formulário e pelo instalador.
-- [ ] **Submeter o plugin e aguardar a criação do repositório SVN** — em 2026-10-24, `https://plugins.svn.wordpress.org/failsafe/` responde **404** (os repositórios de `akismet` e `hello-dolly` respondem 200). O checkout da seção 3 só funciona depois que o plugin for aprovado pelo diretório e o repositório SVN for criado; o primeiro envio é o formulário de submissão com o ZIP do plugin, não o `svn ci`.
+- [x] **ZIP do formulário de submissão** — `./bin/build.sh` agora gera `dist/failsafe-backup-0.2.0.zip` com a pasta `failsafe-backup/` na raiz, que é o formato aceito pelo formulário e pelo instalador.
+- [ ] **Submeter o plugin e aguardar a criação do repositório SVN** — em 2026-10-24, `https://plugins.svn.wordpress.org/failsafe-backup/` responde **404** (os repositórios de `akismet` e `hello-dolly` respondem 200). O checkout da seção 3 só funciona depois que o plugin for aprovado pelo diretório e o repositório SVN for criado; o primeiro envio é o formulário de submissão com o ZIP do plugin, não o `svn ci`.
 - [ ] **Enviar por SVN** — trunk, tag `0.2.0` e assets, depois da aprovação. Roteiro na seção 3.
 - [ ] **Confirmar a tag `0.2.0`** — `Stable tag: 0.2.0` só funciona depois que `tags/0.2.0` existir no SVN. A tag tem que ser criada a partir do mesmo trunk que foi commitado.
 
@@ -41,7 +41,7 @@ Não impedem o `svn ci`, mas precisam de decisão antes de divulgar o pacote:
 
 Nenhuma pendente. As três ressalvas da conferência anterior foram corrigidas na master:
 
-- **`assets/admin.js`** passou para `src/assets/admin.js`, entra no pacote e responde 200 em `/wp-content/plugins/failsafe/assets/admin.js`. A confirmação de exclusão volta a carregar.
+- **`assets/admin.js`** passou para `src/assets/admin.js`, entra no pacote e responde 200 em `/wp-content/plugins/failsafe-backup/assets/admin.js`. A confirmação de exclusão volta a carregar.
 - **Lock do backup manual** documentado no readme e no changelog; o aviso “Another backup is already running.” existe na tela.
 - **Mensagem de limite** agora aparece na interface: a lista traduz os códigos de erro conhecidos (memória, disco, tempo, `ZipArchive` ausente, diretório não gravável, escrita falha, arquivo parcial, sem tabelas). O screenshot 5 pode ser capturado.
 
@@ -59,22 +59,24 @@ cd ~/Projects/failsafe
 Saída esperada: duas linhas com quantidade de arquivos e tamanho, e dois arquivos em `dist/`. Conferir os dois layouts:
 
 ```sh
-unzip -l dist/failsafe.zip | head -5
-unzip -l dist/failsafe-0.2.0.zip | head -5
+unzip -l dist/failsafe-backup.zip | head -5
+unzip -l dist/failsafe-backup-0.2.0.zip | head -5
 ```
 
-No primeiro, o topo é `assets/`, `admin/` e `failsafe.php`. No segundo, tudo começa com `failsafe/`.
+No primeiro, o topo é `assets/`, `admin/` e `failsafe.php`. No segundo, tudo começa com `failsafe-backup/`.
 
 O ZIP deve conter `failsafe.php` na raiz, `readme.txt`, `uninstall.php`, as pastas `admin/`, `includes/` e `languages/`, e **não** deve conter `tests/`, `stubs/`, `bin/`, `docker-compose.yml`, `README.md`, `CHANGELOG.md`, `TASK.md`, `AGENTS.md`, `SUBMISSION.md` nem `assets/README.md`.
 
-Esse é o layout do `trunk/`. O formulário de submissão e o **Plugins > Add New > Upload Plugin** usam o outro arquivo, `dist/failsafe-0.2.0.zip`, gerado pelo mesmo `./bin/build.sh`, com o primeiro nível `failsafe/`.
+Esse é o layout do `trunk/`. O formulário de submissão e o **Plugins > Add New > Upload Plugin** usam o outro arquivo, `dist/failsafe-backup-0.2.0.zip`, gerado pelo mesmo `./bin/build.sh`, com o primeiro nível `failsafe-backup/`.
 
 ### 2.2 Template de tradução (`.pot`)
 
-O `src/languages/failsafe.pot` foi regerado depois das últimas mudanças e está com 155 strings, incluindo as mensagens de erro específicas e o aviso de execução concorrente. Gere de novo no commit final; a comparação deve diferir apenas em `POT-Creation-Date` e `PO-Revision-Date`.
+O `src/languages/failsafe-backup.pot` foi regerado depois das últimas mudanças e está com 167 strings, incluindo as mensagens de erro específicas e o aviso de execução concorrente. Gere de novo no commit final; a comparação deve diferir apenas em `POT-Creation-Date` e `PO-Revision-Date`.
 
 ```sh
-docker exec failsafe-wordpress-1 php /tmp/wp-cli.phar --allow-root --path=/var/www/html i18n make-pot /var/www/html/wp-content/plugins/failsafe /var/www/html/wp-content/plugins/failsafe/languages/failsafe.pot
+docker cp /tmp/wp-cli.phar failsafe-wordpress-1:/tmp/wp-cli.phar
+docker exec -u www-data failsafe-wordpress-1 php /tmp/wp-cli.phar --path=/var/www/html i18n make-pot /var/www/html/wp-content/plugins/failsafe-backup /tmp/failsafe-backup.pot --domain=failsafe-backup
+docker cp failsafe-wordpress-1:/tmp/failsafe-backup.pot src/languages/failsafe-backup.pot
 ```
 
 O `--allow-root` é necessário porque o `docker exec` roda como root. O `--path` aponta para a instalação WordPress do container; o primeiro caminho é a raiz do plugin e o segundo é o arquivo de saída. Depois de gerar, conferir o diff e commitar o `.pot` junto com as strings novas.
@@ -105,7 +107,7 @@ cd ~/Projects/failsafe
 
 # Limpa o trunk e copia o conteúdo do ZIP para dentro dele.
 find ~/failsafe-svn/trunk -mindepth 1 -delete
-unzip -o dist/failsafe.zip -d ~/failsafe-svn/trunk/
+unzip -o dist/failsafe-backup.zip -d ~/failsafe-svn/trunk/
 
 # Confere os arquivos que serão enviados.
 find ~/failsafe-svn/trunk -type f | sort
@@ -167,19 +169,19 @@ O `svn propset svn:mime-type image/png` evita que o navegador baixe o PNG em vez
 ### 3.7 Conferência final
 
 ```sh
-svn ls https://plugins.svn.wordpress.org/failsafe/
+svn ls https://plugins.svn.wordpress.org/failsafe-backup/
 svn ls https://plugins.svn.wordpress.org/failsafe/trunk/
 svn ls https://plugins.svn.wordpress.org/failsafe/assets/
 ```
 
-Conferir também a página `https://wordpress.org/plugins/failsafe/` depois da propagação. O diretório pode levar de alguns minutos a algumas horas para atualizar.
+Conferir também a página `https://wordpress.org/plugins/failsafe-backup/` depois da propagação. O diretório pode levar de alguns minutos a algumas horas para atualizar.
 
 ## 4. O que NÃO fazer
 
 - **Não commitar `dist/`.** O ZIP é artefato de build e já está no `.gitignore`.
-- **Não enviar `tests/`, `stubs/`, `bin/`, `docker-compose.yml`, `README.md`, `CHANGELOG.md`, `TASK.md`, `AGENTS.md`, `SUBMISSION.md` ou `assets/README.md`** para o SVN. Ao copiar o conteúdo de `dist/failsafe.zip` para `trunk/`, nada disso é copiado.
+- **Não enviar `tests/`, `stubs/`, `bin/`, `docker-compose.yml`, `README.md`, `CHANGELOG.md`, `TASK.md`, `AGENTS.md`, `SUBMISSION.md` ou `assets/README.md`** para o SVN. Ao copiar o conteúdo de `dist/failsafe-backup.zip` para `trunk/`, nada disso é copiado.
 - **Não colocar imagens em `trunk/` nem no ZIP.** Ícones, banners e screenshots vão apenas para `assets/` no SVN.
-- **Não usar `dist/failsafe.zip` no formulário de submissão.** Ele tem os arquivos na raiz (layout de `trunk/`); o envio inicial precisa da pasta `failsafe/`.
+- **Não usar `dist/failsafe-backup.zip` no formulário de submissão.** Ele tem os arquivos na raiz (layout de `trunk/`); o envio inicial precisa da pasta `failsafe-backup/`.
 - **Não colocar credenciais no repositório, em comandos versionados ou em log.** A senha do WordPress.org é digitada no prompt do SVN.
 - **Não criar a tag antes do commit do trunk** e não reutilizar uma tag já publicada; para uma correção, publique outra versão.
 - **Não mudar `Stable tag` sem criar a tag correspondente.**
@@ -193,4 +195,4 @@ Conferir também a página `https://wordpress.org/plugins/failsafe/` depois da p
 3. Rodar `./bin/build.sh` e conferir os dois ZIPs.
 4. Rodar `wp i18n make-pot` de novo se alguma string mudou desde o último commit.
 5. Rodar o Plugin Check no commit final (exige `Success: Checks complete. No errors found.`).
-6. Enviar o formulário de submissão com `dist/failsafe-0.2.0.zip` e, depois da aprovação, enviar o trunk, criar a tag `0.2.0` e enviar as imagens em `assets/`.
+6. Enviar o formulário de submissão com `dist/failsafe-backup-0.2.0.zip` e, depois da aprovação, enviar o trunk, criar a tag `0.2.0` e enviar as imagens em `assets/`.

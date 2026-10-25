@@ -19,8 +19,8 @@ add_action( 'admin_enqueue_scripts', 'failsafe_enqueue_admin_assets' );
  */
 function failsafe_register_menu() {
 	$hook = add_menu_page(
-		__( 'Failsafe Backups', 'failsafe' ),
-		__( 'Failsafe', 'failsafe' ),
+		__( 'Failsafe Backups', 'failsafe-backup' ),
+		__( 'Failsafe', 'failsafe-backup' ),
 		failsafe_backup_capability(),
 		'failsafe-backups',
 		'failsafe_render_backups_page',

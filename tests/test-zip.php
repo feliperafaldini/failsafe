@@ -3,7 +3,7 @@
  * Unit checks for failsafe_create_backup() and failsafe_create_zip().
  *
  * Run inside the WordPress container:
- *   php /var/www/html/wp-content/plugins/failsafe/tests/test-zip.php
+ *   php /var/www/html/wp-content/plugins/failsafe-backup/tests/test-zip.php
  *
  * @package Failsafe
  */
@@ -39,7 +39,7 @@ $sql_name = basename( $result['sql_path'] );
 failsafe_assert( false !== $zip->locateName( $sql_name ), 'archive contains the SQL dump (' . $sql_name . ')' );
 failsafe_assert( false !== $zip->locateName( 'wp-config.php' ), 'archive contains wp-config.php' );
 failsafe_assert( false !== $zip->locateName( 'wp-includes/version.php' ), 'archive contains core files' );
-failsafe_assert( false !== $zip->locateName( 'wp-content/plugins/failsafe/failsafe.php' ), 'archive contains the plugin itself' );
+failsafe_assert( false !== $zip->locateName( 'wp-content/plugins/failsafe-backup/failsafe.php' ), 'archive contains the plugin itself' );
 
 $leaked = 0;
 

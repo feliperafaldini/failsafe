@@ -59,6 +59,7 @@ None of these has a version or a date.
 - Retention runs after every completed backup, manual or scheduled.
 - The ZIP holds the dump under the set name (`failsafe-YYYYMMDD-HHMMSS.sql`); the restore also accepts the fixed name used by 0.1.0.
 - `Uninstall` removes every plugin option and the lock transient; with `failsafe_delete_backups_on_uninstall` enabled it also removes the backup directory.
+- Text domain, translation template and package folder renamed to `failsafe-backup` to match the slug derived from the plugin name.
 
 ### Fixed
 
