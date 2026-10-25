@@ -1,0 +1,688 @@
+# Copyright (C) 2026 Felipe Albino
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Failsafe Backup 0.2.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/failsafe\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-10-25T02:29:26+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: failsafe\n"
+
+#. Plugin Name of the plugin
+#: failsafe.php
+#: admin/dashboard.php:26
+#: admin/settings.php:38
+#: admin/settings.php:39
+#: admin/settings.php:219
+msgid "Failsafe Backup"
+msgstr ""
+
+#. Description of the plugin
+#: failsafe.php
+msgid "Creates a backup of the WordPress database and files as a single ZIP archive."
+msgstr ""
+
+#. Author of the plugin
+#: failsafe.php
+msgid "Felipe Albino"
+msgstr ""
+
+#: admin/actions.php:76
+#: includes/storage.php:71
+#: includes/storage.php:152
+msgid "Invalid backup name."
+msgstr ""
+
+#: admin/actions.php:146
+msgid "Could not read the current time."
+msgstr ""
+
+#: admin/actions.php:165
+msgid "Could not find an unused backup name for this second. Try again in a moment."
+msgstr ""
+
+#: admin/actions.php:202
+msgid "No tables found in the database."
+msgstr ""
+
+#: admin/actions.php:309
+#: includes/restore.php:312
+msgid "The ZipArchive extension is not available."
+msgstr ""
+
+#. translators: %d: ZipArchive error code.
+#: admin/actions.php:320
+#, php-format
+msgid "Could not open the archive (error %d)."
+msgstr ""
+
+#: admin/actions.php:363
+msgid "Could not finish the archive."
+msgstr ""
+
+#. translators: %d: number of files that could not be added.
+#: admin/actions.php:371
+#, php-format
+msgid "The archive was written but %d files could not be added."
+msgstr ""
+
+#: admin/backups-page.php:20
+msgid "Sorry, you are not allowed to access this page."
+msgstr ""
+
+#: admin/backups-page.php:30
+msgid "Backups"
+msgstr ""
+
+#: admin/backups-page.php:42
+msgid "The backup directory is not accessible to WordPress. Check the file permissions and the site log."
+msgstr ""
+
+#: admin/backups-page.php:45
+#: admin/dashboard.php:58
+msgid "No backups yet."
+msgstr ""
+
+#: admin/backups-page.php:46
+msgid "Create a backup of your database and files to get started."
+msgstr ""
+
+#: admin/backups-page.php:68
+msgid "Backup created."
+msgstr ""
+
+#: admin/backups-page.php:69
+msgid "Backup deleted."
+msgstr ""
+
+#: admin/backups-page.php:70
+msgid "The backup could not be deleted completely. Check the site log for details."
+msgstr ""
+
+#: admin/backups-page.php:71
+msgid "The backup could not be created. Check the site log for details."
+msgstr ""
+
+#: admin/backups-page.php:96
+#: admin/restore.php:262
+msgid "Date"
+msgstr ""
+
+#: admin/backups-page.php:97
+msgid "Files"
+msgstr ""
+
+#: admin/backups-page.php:98
+#: admin/restore.php:263
+msgid "Size"
+msgstr ""
+
+#: admin/backups-page.php:99
+msgid "Actions"
+msgstr ""
+
+#: admin/backups-page.php:117
+msgid "Incomplete"
+msgstr ""
+
+#: admin/backups-page.php:118
+msgid "One file of this set is missing. It is kept until you delete it."
+msgstr ""
+
+#. translators: 1: number of backups, 2: total size on disk.
+#: admin/backups-page.php:150
+#: admin/dashboard.php:66
+#, php-format
+msgid "%1$s backup, %2$s on disk."
+msgid_plural "%1$s backups, %2$s on disk."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: backup date, 2: backup size.
+#: admin/dashboard.php:51
+#, php-format
+msgid "Last backup: %1$s (%2$s)."
+msgstr ""
+
+#: admin/dashboard.php:76
+msgid "View all backups"
+msgstr ""
+
+#: admin/menu.php:22
+msgid "Failsafe Backups"
+msgstr ""
+
+#: admin/menu.php:23
+msgid "Failsafe"
+msgstr ""
+
+#: admin/partials.php:46
+msgid "Backup now"
+msgstr ""
+
+#: admin/partials.php:62
+msgid "Download (.zip)"
+msgstr ""
+
+#: admin/partials.php:68
+msgid "Download (.sql)"
+msgstr ""
+
+#: admin/partials.php:79
+msgid "Delete this backup? This cannot be undone."
+msgstr ""
+
+#: admin/partials.php:81
+msgid "Delete"
+msgstr ""
+
+#: admin/restore.php:23
+#: admin/restore.php:24
+#: admin/restore.php:247
+msgid "Failsafe Restore"
+msgstr ""
+
+#: admin/restore.php:54
+#: admin/restore.php:240
+msgid "You are not allowed to restore backups."
+msgstr ""
+
+#: admin/restore.php:62
+msgid "The requested backup name is not valid. Nothing was restored."
+msgstr ""
+
+#: admin/restore.php:68
+msgid "The confirmation text does not match the backup name. Nothing was restored."
+msgstr ""
+
+#: admin/restore.php:78
+msgid "The backup archive is missing or empty. Nothing was restored."
+msgstr ""
+
+#: admin/restore.php:84
+msgid "The backup archive cannot be read. Nothing was restored."
+msgstr ""
+
+#. translators: %s: dump file name.
+#: admin/restore.php:120
+#, php-format
+msgid "The archive does not contain a readable %s file. Nothing was restored."
+msgstr ""
+
+#: admin/restore.php:130
+msgid "The database dump is empty. Nothing was restored."
+msgstr ""
+
+#. translators: %s: backup base name.
+#: admin/restore.php:156
+#, php-format
+msgid "The database was restored from %s. The backup was kept and the site files were not changed. You may need to sign in again."
+msgstr ""
+
+#: admin/restore.php:220
+msgid "The restore finished."
+msgstr ""
+
+#: admin/restore.php:220
+msgid "The restore failed."
+msgstr ""
+
+#: admin/restore.php:251
+msgid "Restoring replaces every table contained in the backup. A safety backup is created first, but the current database will be overwritten. Site files are not changed. Keep this tab open until the restore finishes."
+msgstr ""
+
+#: admin/restore.php:255
+msgid "No backups were found."
+msgstr ""
+
+#: admin/restore.php:261
+msgid "Backup"
+msgstr ""
+
+#: admin/restore.php:264
+msgid "Restore"
+msgstr ""
+
+#: admin/restore.php:271
+msgid "Unknown"
+msgstr ""
+
+#: admin/restore.php:284
+msgid "The archive is missing or empty."
+msgstr ""
+
+#: admin/restore.php:294
+msgid "None of the backups has a usable archive, so nothing can be restored right now."
+msgstr ""
+
+#: admin/restore.php:315
+msgid "Type the backup name to confirm:"
+msgstr ""
+
+#: admin/restore.php:324
+msgid "Restore database"
+msgstr ""
+
+#: admin/settings.php:84
+#: admin/settings.php:371
+msgid "Automatic backups"
+msgstr ""
+
+#: admin/settings.php:91
+msgid "Schedule"
+msgstr ""
+
+#: admin/settings.php:100
+msgid "Frequency"
+msgstr ""
+
+#: admin/settings.php:109
+msgid "Storage"
+msgstr ""
+
+#: admin/settings.php:116
+msgid "Backups to keep"
+msgstr ""
+
+#: admin/settings.php:151
+msgid "Unknown backup frequency. The daily schedule was kept."
+msgstr ""
+
+#: admin/settings.php:171
+msgid "The number of backups to keep must be a whole number. The previous value was kept."
+msgstr ""
+
+#. translators: %d: number of backups that will be kept.
+#: admin/settings.php:195
+#, php-format
+msgid "The number of backups to keep must be between 0 and 50. Using %d."
+msgstr ""
+
+#: admin/settings.php:215
+msgid "You are not allowed to manage backup settings."
+msgstr ""
+
+#: admin/settings.php:237
+msgid "Scheduled backups rely on WP-Cron, which only runs when the site receives a visit."
+msgstr ""
+
+#: admin/settings.php:241
+msgid "A quiet site can run a backup late; the status below shows when the next run is due."
+msgstr ""
+
+#: admin/settings.php:265
+msgid "Run a backup automatically. Turning this off removes the scheduled event."
+msgstr ""
+
+#: admin/settings.php:278
+msgid "How often automatic backups run. Changing it never adds a second event."
+msgstr ""
+
+#: admin/settings.php:300
+msgid "Backups are stored in the site content directory and are not reachable from the web."
+msgstr ""
+
+#: admin/settings.php:304
+msgid "The retention limit below is applied after every automatic backup."
+msgstr ""
+
+#: admin/settings.php:327
+msgid "How many backup sets to keep. Use 0 to keep every backup."
+msgstr ""
+
+#. translators: %s: date and time the backup was due.
+#: admin/settings.php:343
+#, php-format
+msgid "The scheduled backup is overdue. It was due on %s."
+msgstr ""
+
+#: admin/settings.php:346
+msgid "WP-Cron only runs with traffic, so a quiet site can be late."
+msgstr ""
+
+#: admin/settings.php:350
+msgid "Automatic backups are enabled, but no event is scheduled."
+msgstr ""
+
+#: admin/settings.php:351
+msgid "Save the settings to schedule it again."
+msgstr ""
+
+#: admin/settings.php:357
+msgid "DISABLE_WP_CRON is set, so WordPress does not start scheduled tasks."
+msgstr ""
+
+#: admin/settings.php:358
+msgid "Run wp-cron.php from a system cron job to keep backups on time."
+msgstr ""
+
+#: admin/settings.php:363
+msgid "Not scheduled"
+msgstr ""
+
+#: admin/settings.php:372
+msgid "Enabled"
+msgstr ""
+
+#: admin/settings.php:372
+msgid "Disabled"
+msgstr ""
+
+#: admin/settings.php:375
+msgid "Last run"
+msgstr ""
+
+#: admin/settings.php:379
+msgid "Last result"
+msgstr ""
+
+#: admin/settings.php:383
+msgid "Next run"
+msgstr ""
+
+#: admin/settings.php:421
+msgid "Never"
+msgstr ""
+
+#. translators: 1: date and time, 2: human readable age such as "5 mins".
+#: admin/settings.php:426
+#, php-format
+msgid "%1$s (%2$s ago)"
+msgstr ""
+
+#. translators: %s: date and time.
+#: admin/settings.php:442
+#, php-format
+msgid "%s (due now)"
+msgstr ""
+
+#. translators: 1: date and time, 2: human readable wait such as "5 mins".
+#: admin/settings.php:449
+#, php-format
+msgid "%1$s (in %2$s)"
+msgstr ""
+
+#: admin/settings.php:463
+msgid "Completed successfully."
+msgstr ""
+
+#. translators: %d: number of old backups removed by retention.
+#: admin/settings.php:468
+#, php-format
+msgid "%d older backup was removed by retention."
+msgid_plural "%d older backups were removed by retention."
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/settings.php:482
+msgid "Failed."
+msgstr ""
+
+#. translators: %s: error code.
+#: admin/settings.php:487
+#, php-format
+msgid "Error code: %s."
+msgstr ""
+
+#: admin/settings.php:499
+msgid "No automatic backup has run yet."
+msgstr ""
+
+#. translators: %s: directory path.
+#: admin/setup.php:64
+#, php-format
+msgid "Failsafe Backup cannot use the backup directory %s. Backups will fail until this is fixed."
+msgstr ""
+
+#: includes/cron.php:76
+msgid "Once weekly"
+msgstr ""
+
+#: includes/cron.php:90
+msgid "Hourly"
+msgstr ""
+
+#: includes/cron.php:91
+msgid "Twice daily"
+msgstr ""
+
+#: includes/cron.php:92
+msgid "Daily"
+msgstr ""
+
+#: includes/cron.php:93
+msgid "Weekly"
+msgstr ""
+
+#: includes/cron.php:177
+msgid "Could not schedule the automatic backup."
+msgstr ""
+
+#: includes/cron.php:249
+#: includes/cron.php:253
+msgid "A scheduled backup is already running."
+msgstr ""
+
+#: includes/limits.php:186
+msgid "The database connection is not available."
+msgstr ""
+
+#. translators: 1: estimated database size, 2: memory required, 3: safety factor, 4: PHP memory limit.
+#: includes/limits.php:250
+#, php-format
+msgid "This site has about %1$s of database. Dumping it needs about %2$s of memory (%3$d times the database size), but PHP only allows %4$s. Raise the memory_limit setting or run the backup from the command line."
+msgstr ""
+
+#. translators: 1: backup directory, 2: free space required, 3: free space available.
+#: includes/limits.php:268
+#, php-format
+msgid "The backup directory %1$s needs about %2$s of free space, but only %3$s is available. Free up disk space and try again."
+msgstr ""
+
+#. translators: 1: estimated duration in seconds, 2: PHP time limit in seconds.
+#: includes/limits.php:284
+#, php-format
+msgid "This backup is estimated to take about %1$d seconds, but PHP stops the request after %2$d seconds. Raise the max_execution_time setting or run the backup in the background."
+msgstr ""
+
+#. translators: 1: site name, 2: backup status ("failed" or "completed").
+#: includes/notifications.php:90
+#, php-format
+msgid "[%1$s] Failsafe Backup %2$s"
+msgstr ""
+
+#: includes/notifications.php:92
+msgid "failed"
+msgstr ""
+
+#: includes/notifications.php:92
+msgid "completed"
+msgstr ""
+
+#. translators: %s: site URL.
+#: includes/notifications.php:114
+#, php-format
+msgid "Site: %s"
+msgstr ""
+
+#: includes/notifications.php:120
+msgid "Status: failed"
+msgstr ""
+
+#. translators: 1: error code, 2: error message.
+#: includes/notifications.php:123
+#, php-format
+msgid "Error: %1$s (%2$s)"
+msgstr ""
+
+#. translators: %s: estimated database size.
+#: includes/notifications.php:135
+#, php-format
+msgid "Database (estimated): %s"
+msgstr ""
+
+#: includes/notifications.php:141
+msgid "Status: completed"
+msgstr ""
+
+#. translators: %s: database dump size.
+#: includes/notifications.php:147
+#, php-format
+msgid "Database dump: %s"
+msgstr ""
+
+#. translators: %s: archive size.
+#: includes/notifications.php:155
+#, php-format
+msgid "Archive: %s"
+msgstr ""
+
+#. translators: %s: archive path.
+#: includes/notifications.php:163
+#, php-format
+msgid "Archive file: %s"
+msgstr ""
+
+#. translators: %s: duration in seconds.
+#: includes/notifications.php:173
+#, php-format
+msgid "Duration: %s seconds"
+msgstr ""
+
+#: includes/notifications.php:180
+msgid "Check the site log for more details."
+msgstr ""
+
+#: includes/restore.php:186
+msgid "The dump does not contain any SQL statement."
+msgstr ""
+
+#: includes/restore.php:202
+msgid "unknown database error"
+msgstr ""
+
+#. translators: 1: statement number, 2: total number of statements, 3: database error message, 4: truncated SQL command.
+#: includes/restore.php:220
+#, php-format
+msgid "Restore stopped at statement %1$d of %2$d: %3$s. Command: %4$s"
+msgstr ""
+
+#: includes/restore.php:279
+msgid "The backup routine is not available, so the restore was aborted."
+msgstr ""
+
+#. translators: %s: database or filesystem error message.
+#: includes/restore.php:290
+#, php-format
+msgid "The safety backup could not be created, so the restore was aborted: %s"
+msgstr ""
+
+#. translators: %s: archive path.
+#: includes/restore.php:320
+#, php-format
+msgid "The backup archive %s cannot be read."
+msgstr ""
+
+#. translators: %s: directory path.
+#: includes/restore.php:335
+#, php-format
+msgid "Could not create the temporary directory %s."
+msgstr ""
+
+#: includes/restore.php:351
+msgid "The extraction directory must live outside the WordPress installation."
+msgstr ""
+
+#. translators: %d: ZipArchive error code.
+#: includes/restore.php:365
+#, php-format
+msgid "Could not open the backup archive (error %d)."
+msgstr ""
+
+#: includes/restore.php:375
+msgid "The backup archive is empty."
+msgstr ""
+
+#. translators: 1: number of entries, 2: maximum number of entries.
+#: includes/restore.php:389
+#, php-format
+msgid "The archive has %1$d entries and exceeds the limit of %2$d."
+msgstr ""
+
+#: includes/restore.php:404
+#: includes/restore.php:449
+msgid "An archive entry could not be read."
+msgstr ""
+
+#. translators: 1: archive entry name, 2: rejection reason.
+#: includes/restore.php:418
+#, php-format
+msgid "The archive entry %1$s was rejected: %2$s"
+msgstr ""
+
+#. translators: %s: archive entry name.
+#: includes/restore.php:434
+#, php-format
+msgid "The archive entry %s is a symbolic link, which is not allowed."
+msgstr ""
+
+#. translators: %s: directory path.
+#: includes/restore.php:464
+#: includes/restore.php:484
+#, php-format
+msgid "Could not create the extracted directory %s."
+msgstr ""
+
+#. translators: %s: archive entry name.
+#: includes/restore.php:499
+#, php-format
+msgid "Could not extract the archive entry %s."
+msgstr ""
+
+#: includes/restore.php:537
+msgid "the entry name is empty or contains a null byte."
+msgstr ""
+
+#: includes/restore.php:546
+msgid "absolute paths are not allowed."
+msgstr ""
+
+#: includes/restore.php:553
+msgid "absolute Windows paths are not allowed."
+msgstr ""
+
+#: includes/restore.php:561
+msgid "parent directory references are not allowed."
+msgstr ""
+
+#: includes/storage.php:158
+msgid "Backup not found."
+msgstr ""
+
+#: includes/storage.php:180
+msgid "The filesystem is not writable by WordPress."
+msgstr ""
+
+#. translators: %s: comma separated file types.
+#: includes/storage.php:202
+#, php-format
+msgid "Could not delete: %s."
+msgstr ""
+
+#. translators: %s: file path.
+#: includes/storage.php:301
+#, php-format
+msgid "Could not write %s."
+msgstr ""
+
+#. translators: %s: file path.
+#: includes/storage.php:314
+#, php-format
+msgid "Could not move %s into place."
+msgstr ""
