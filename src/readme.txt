@@ -1,5 +1,5 @@
 === Failsafe Backup ===
-Contributors: felipealbino
+Contributors: feliperafaldini
 Tags: backup, database, restore, schedule, zip
 Requires at least: 6.2
 Tested up to: 7.1

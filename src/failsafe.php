@@ -6,6 +6,7 @@
  * Requires at least: 6.2
  * Requires PHP:      8.0
  * Author:            Felipe Albino
+ * Author URI:        https://profiles.wordpress.org/feliperafaldini/
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       failsafe

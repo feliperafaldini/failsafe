@@ -22,7 +22,7 @@
 
 ### 1.2 O que falta e bloqueia o envio
 
-- [ ] **Confirmar `Contributors`** — `src/readme.txt` traz `Contributors: felipealbino`. Precisa ser o usuário WordPress.org que realmente tem acesso de commit ao SVN e que deve aparecer como autor na página do plugin. Em 2026-10-24, `https://profiles.wordpress.org/felipealbino/` responde **404** (perfis como `matt` e `ipstenu` respondem 200), então confirme o username correto antes do envio.
+- [x] **`Contributors` confirmado** — `src/readme.txt` traz `Contributors: feliperafaldini`, conta criada em 2026-10-25 e verificada em `https://profiles.wordpress.org/feliperafaldini/` (HTTP 200). É o mesmo login que precisa ter acesso de commit ao SVN.
 - [ ] **Confirmar `Tested up to`** — `src/readme.txt` traz `Tested up to: 7.1`. O container local roda WordPress **7.1.3** (`wp core version`), então o valor é coerente com o ambiente, mas só pode ser publicado depois de confirmar que 7.1 é de fato a versão mais alta testada. Não declarar versão não testada.
 - [ ] **Capturar os screenshots reais** — nenhum PNG existe no repositório. Os cinco arquivos e o conteúdo de cada um estão em `assets/README.md`. O `src/readme.txt` ainda diz que não há imagens e tem **4** legendas; para publicar **5** imagens, a seção `== Screenshots ==` precisa ser reescrita com 5 linhas na mesma ordem dos arquivos.
 - [ ] **Fechar o `plugin check` sem erros** — comando oficial no container:
