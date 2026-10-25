@@ -198,6 +198,19 @@ function failsafe_restore_database( string $sql ) {
 		foreach ( $statements as $position => $statement ) {
 			$wpdb->last_error = '';
 
+			if ( ! failsafe_restore_allowed_statement( $statement ) ) {
+				return new WP_Error(
+					'failsafe_restore_statement_blocked',
+					sprintf(
+						/* translators: 1: statement number, 2: total number of statements, 3: truncated SQL command. */
+						__( 'Restore stopped at statement %1$d of %2$d: this statement type is not allowed. Command: %3$s', 'failsafe' ),
+						(int) $position + 1,
+						$total,
+						failsafe_restore_statement_excerpt( $statement )
+					)
+				);
+			}
+
 			// Statements come from the backup archive, never from user input; preparing them would break DDL.
 			// phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- statements are read from the validated backup archive, not from user input, and cannot be prepared without breaking CREATE TABLE and INSERT.
 			$result = $wpdb->query( $statement );
@@ -247,6 +260,54 @@ function failsafe_restore_database( string $sql ) {
  */
 function failsafe_restore_is_best_effort_statement( string $statement ): bool {
 	return 1 === preg_match( '/^\s*SET\b/i', $statement );
+}
+
+/**
+ * Statement types the restore is allowed to execute.
+ *
+ * A backup archive is a file on disk: if it is tampered with, the restore must
+ * not become a way to run arbitrary SQL against the site. Only the commands a
+ * dump needs are accepted.
+ *
+ * @return string[] Upper-case statement prefixes.
+ */
+function failsafe_restore_allowed_statements(): array {
+	return (array) apply_filters(
+		'failsafe_restore_allowed_statements',
+		array(
+			'SET',
+			'DROP TABLE',
+			'DROP VIEW',
+			'CREATE TABLE',
+			'CREATE VIEW',
+			'ALTER TABLE',
+			'INSERT',
+			'REPLACE',
+			'LOCK TABLES',
+			'UNLOCK TABLES',
+			'START TRANSACTION',
+			'COMMIT',
+			'ROLLBACK',
+		)
+	);
+}
+
+/**
+ * Tells whether a statement is safe to execute during a restore.
+ *
+ * @param string $statement SQL statement.
+ * @return bool
+ */
+function failsafe_restore_allowed_statement( string $statement ): bool {
+	$allowed = failsafe_restore_allowed_statements();
+
+	if ( empty( $allowed ) ) {
+		return false;
+	}
+
+	$pattern = '/^\s*(?:' . implode( '|', array_map( 'preg_quote', $allowed ) ) . ')\b/i';
+
+	return 1 === preg_match( $pattern, $statement );
 }
 
 /**

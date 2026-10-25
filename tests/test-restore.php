@@ -199,4 +199,48 @@ failsafe_assert( is_wp_error( $result ) && 'failsafe_restore_entry_symlink' === 
 
 unlink( $link_zip );
 
+echo "\nfailsafe_restore_allowed_statement()\n";
+
+$allowed_statements = array(
+	'CREATE TABLE `wp_test` ( `id` int )',
+	'DROP TABLE IF EXISTS `wp_test`',
+	'INSERT INTO `wp_test` VALUES ( 1 )',
+	'SET NAMES utf8mb4',
+	'SET SESSION sql_mode = \'\'',
+	'ALTER TABLE `wp_test` DISABLE KEYS',
+	'START TRANSACTION WITH CONSISTENT SNAPSHOT',
+	'COMMIT',
+	'LOCK TABLES `wp_test` WRITE',
+);
+
+foreach ( $allowed_statements as $statement ) {
+	failsafe_assert( failsafe_restore_allowed_statement( $statement ), 'allowed: ' . $statement );
+}
+
+$blocked_statements = array(
+	'DROP DATABASE wp_local',
+	'UPDATE wp_users SET user_pass = \'x\'',
+	'DELETE FROM wp_users',
+	'TRUNCATE TABLE wp_users',
+	'GRANT ALL ON *.* TO \'x\'@\'%\'',
+	'CREATE USER \'x\'@\'%\' IDENTIFIED BY \'y\'',
+	'LOAD DATA INFILE \'/etc/passwd\' INTO TABLE wp_users',
+	'SELECT SLEEP( 10 )',
+	'CALL some_procedure()',
+);
+
+foreach ( $blocked_statements as $statement ) {
+	failsafe_assert( ! failsafe_restore_allowed_statement( $statement ), 'blocked: ' . $statement );
+}
+
+// End-to-end: a blocked command must stop the restore before touching the database.
+// The UPDATE below matches no row, so it is harmless even if the guard ever regressed.
+$blocked = failsafe_restore_database( 'UPDATE wp_options SET option_value = option_value WHERE option_name = \'__failsafe_missing__\';' );
+
+failsafe_assert( is_wp_error( $blocked ), 'a dump with a blocked statement is rejected' );
+failsafe_assert(
+	is_wp_error( $blocked ) && 'failsafe_restore_statement_blocked' === $blocked->get_error_code(),
+	'the rejection code names the statement guard'
+);
+
 failsafe_report();
