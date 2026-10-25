@@ -282,7 +282,7 @@ function failsafe_get_backups_total_size() {
 }
 
 /**
- * Writes a file atomically: temp file first, rename last.
+ * Writes a file atomically: temp file first, move into place last.
  *
  * @param string $path     Destination path.
  * @param string $contents File contents.
@@ -304,8 +304,19 @@ function failsafe_write_file_atomic( $path, $contents ) {
 		);
 	}
 
-	if ( ! rename( $temp, $path ) ) {
-		@unlink( $temp );
+	$filesystem = failsafe_fs();
+
+	if ( ! $filesystem ) {
+		wp_delete_file( $temp );
+
+		return new WP_Error(
+			'failsafe_fs_unavailable',
+			__( 'The filesystem is not writable by WordPress.', 'failsafe' )
+		);
+	}
+
+	if ( ! $filesystem->move( $temp, $path, true ) ) {
+		wp_delete_file( $temp );
 
 		return new WP_Error(
 			'failsafe_rename_failed',

@@ -174,6 +174,11 @@ function failsafe_split_sql_statements( string $sql ): array {
  * a WP_Error quoting the statement; failing SET statements are only logged, as
  * restricted database users may not be allowed to change some session values.
  *
+ * The statements are read from the SQL dump inside the validated backup
+ * archive, not from user input. They are MySQL DDL and multi-row INSERT
+ * commands, so they cannot be passed through $wpdb->prepare(): doing so would
+ * escape the data and break CREATE TABLE and INSERT.
+ *
  * @param string $sql Dump contents.
  * @return true|WP_Error True when every statement ran.
  */
@@ -193,6 +198,8 @@ function failsafe_restore_database( string $sql ) {
 		foreach ( $statements as $position => $statement ) {
 			$wpdb->last_error = '';
 
+			// Statements come from the backup archive, never from user input; preparing them would break DDL.
+			// phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- statements are read from the validated backup archive, not from user input, and cannot be prepared without breaking CREATE TABLE and INSERT.
 			$result = $wpdb->query( $statement );
 
 			if ( false !== $result && '' === $wpdb->last_error ) {
@@ -338,6 +345,7 @@ function failsafe_extract_backup_archive( string $zip_path, string $target_dir =
 		);
 	}
 
+	// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_chmod -- 0700 protects the temporary directory that holds the extracted dump, and this runs before any WP_Filesystem transport is chosen.
 	@chmod( $target_dir, 0700 );
 
 	$real_target = realpath( $target_dir );
@@ -594,7 +602,8 @@ function failsafe_restore_entry_is_symlink( ZipArchive $zip, int $index ): bool 
 /**
  * Removes a temporary extraction directory.
  *
- * Refuses to touch anything outside the system temporary directory.
+ * Refuses to touch anything outside the system temporary directory. Deletion
+ * goes through WP_Filesystem; symbolic links are unlinked, never followed.
  *
  * @param string $directory Absolute path to remove.
  * @return bool
@@ -611,6 +620,16 @@ function failsafe_remove_temp_directory( string $directory ): bool {
 		return false;
 	}
 
+	require_once ABSPATH . 'wp-admin/includes/file.php';
+
+	$filesystem = WP_Filesystem( false, $real_directory, true ) ? $GLOBALS['wp_filesystem'] : false;
+
+	if ( ! $filesystem ) {
+		failsafe_log( 'restore cleanup: the filesystem API could not be initialised.' );
+
+		return false;
+	}
+
 	$failed = false;
 
 	try {
@@ -623,11 +642,12 @@ function failsafe_remove_temp_directory( string $directory ): bool {
 			$pathname = $item->getPathname();
 
 			if ( $item->isDir() && ! $item->isLink() ) {
-				$failed = ! @rmdir( $pathname ) || $failed;
+				$failed = ! $filesystem->delete( $pathname ) || $failed;
 				continue;
 			}
 
-			$failed = ! @unlink( $pathname ) || $failed;
+			// Force the file branch so a symbolic link is unlinked instead of followed.
+			$failed = ! $filesystem->delete( $pathname, false, 'f' ) || $failed;
 		}
 	} catch ( Exception $exception ) {
 		failsafe_log( 'restore cleanup: ' . $exception->getMessage() );
@@ -635,5 +655,5 @@ function failsafe_remove_temp_directory( string $directory ): bool {
 		return false;
 	}
 
-	return @rmdir( $real_directory ) && ! $failed;
+	return $filesystem->delete( $real_directory ) && ! $failed;
 }
