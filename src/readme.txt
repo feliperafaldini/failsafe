@@ -183,8 +183,6 @@ Yes. The ZIP contains `wp-config.php` and the database dump, including password 
 
 == Screenshots ==
 
-No screenshot images are bundled with version 0.2.0. The entries below describe the current screens.
-
 1. The **Backups** screen with the table of sets, the download and delete actions, and the total size on disk.
 2. The **Failsafe Restore** screen under **Tools**, with the warning, the backup table and the typed confirmation field.
 3. The **Failsafe Backup** settings screen with the schedule status, the frequency selector and the retention field.
@@ -226,7 +224,7 @@ Multisite support, restoring site files, background processing for large sites a
 * Database restore under **Tools > Failsafe Restore**, with typed confirmation, a full safety backup before the restore, archive entry validation and a notice that site files are not changed.
 * Scheduled backups (hourly, twice daily, daily and weekly) with a run lock, stale-lock takeover, and last-run and last-result status.
 * Settings screen for automatic backups, frequency and retention.
-* Pre-flight checks for memory, disk space and maximum execution time before the dump starts.
+* Pre-flight checks for memory, disk space and a time estimate (about 5 seconds plus 1 second per 8 MB of database and files) before the dump starts.
 * Status e-mail for manual runs: failures are reported when the administrator address is valid, and successful runs are reported only with `failsafe_email_on_success`.
 * Requires PHP 8.0, matching the plugin header.
 

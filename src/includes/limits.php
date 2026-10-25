@@ -48,8 +48,9 @@ if ( ! defined( 'FAILSAFE_BACKUP_BASE_SECONDS' ) ) {
 }
 
 if ( ! defined( 'FAILSAFE_DB_BYTES_PER_SECOND' ) ) {
-	// Assumed dump throughput, conservative for the local container.
-	define( 'FAILSAFE_DB_BYTES_PER_SECOND', 2 * 1024 * 1024 );
+	// Measured here: a 150,000-row table plus a 42 MB archive in 8 s, about 10 MB/s
+	// of payload. 8 MB/s keeps a margin without blocking work that fits in the limit.
+	define( 'FAILSAFE_DB_BYTES_PER_SECOND', 8 * 1024 * 1024 );
 }
 
 /**

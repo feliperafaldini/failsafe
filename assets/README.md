@@ -8,15 +8,15 @@ Esta pasta documenta os arquivos de imagem da página do plugin em wordpress.org
 
 | Arquivo | Dimensão | Formato | Limite | Estado |
 |---|---|---|---|---|
-| `icon-128x128.png` | 128 × 128 px | PNG | 1 MB | não existe |
+| `icon-128x128.png` | 128 × 128 px | PNG | 1 MB | **falta criar** |
 | `icon-256x256.png` | 256 × 256 px | PNG | 1 MB | não existe |
 | `banner-772x250.png` | 772 × 250 px | PNG | 4 MB | não existe |
 | `banner-1544x500.png` | 1544 × 500 px | PNG | 4 MB | não existe |
-| `screenshot-1.png` | sem exigência oficial; recomendado 1280 × 720 px | PNG | 10 MB | não existe |
-| `screenshot-2.png` | sem exigência oficial; recomendado 1280 × 720 px | PNG | 10 MB | não existe |
-| `screenshot-3.png` | sem exigência oficial; recomendado 1280 × 720 px | PNG | 10 MB | não existe |
-| `screenshot-4.png` | sem exigência oficial; recomendado 1280 × 720 px | PNG | 10 MB | não existe |
-| `screenshot-5.png` | sem exigência oficial; recomendado 1280 × 720 px | PNG | 10 MB | não existe |
+| `screenshot-1.png` | 1280 × 720 px (capturado) | PNG | 10 MB | existe |
+| `screenshot-2.png` | 1280 × 720 px (capturado) | PNG | 10 MB | existe |
+| `screenshot-3.png` | 1280 × 720 px (capturado) | PNG | 10 MB | existe |
+| `screenshot-4.png` | 1280 × 720 px (capturado) | PNG | 10 MB | existe |
+| `screenshot-5.png` | 1280 × 720 px (capturado) | PNG | 10 MB | existe |
 
 Observações:
 

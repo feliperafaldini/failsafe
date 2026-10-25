@@ -40,7 +40,7 @@ Nada disso tem versão ou data definida.
 - Lock de execução para backups agendados e manuais, com transiente de apoio e retomada de lock abandonado após 15 minutos.
 - Tela de configurações com o estado do agendamento, a última execução, o último resultado, a próxima execução e o limite de retenção.
 - Avisos na tela de configurações para evento atrasado, evento ausente e `DISABLE_WP_CRON`.
-- Checagem prévia de memória (piso fixo de 64 MB, já que o dump é streaming), disco (cerca de 2 vezes o banco mais os arquivos do site, mais 16 MB) e tempo de execução (cerca de 5 segundos mais 1 segundo por 2 MB).
+- Checagem prévia de memória (piso fixo de 64 MB, já que o dump é streaming), disco (cerca de 2 vezes o banco mais os arquivos do site, mais 16 MB) e tempo de execução (cerca de 5 segundos mais 1 segundo por 8 MB de banco e arquivos).
 - Cache de 1 hora para o tamanho total dos arquivos do site, usado no cálculo de disco.
 - Cache de 10 minutos para o tamanho estimado do banco, consultado em `information_schema`.
 - E-mail de status para backups manuais: falha sempre que o endereço do administrador é válido, sucesso apenas com a opção `failsafe_email_on_success` ligada; destinatário configurável pelo filtro `failsafe_status_email_recipient`.
