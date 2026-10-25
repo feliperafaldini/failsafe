@@ -121,6 +121,10 @@ The web server user must be able to write to `wp-content/`. For backups, the dat
 
 In `wp-content/failsafe-backups/` by default. The directory is created by the plugin and protected with `.htaccess` on Apache. Define `FAILSAFE_BACKUP_DIR` in `wp-config.php` to use another absolute path.
 
+= Does the plugin send any data outside my site? =
+
+No. It makes no HTTP requests, sends no telemetry and does not contact WordPress.org or any other service. The only outgoing message is the status e-mail, delivered through your own site's mail configuration to the administrator address. Backups, settings and logs stay on your server.
+
 = How many backups are kept? =
 
 Five by default. Change **Backups to keep** under **Settings > Failsafe Backup**: 0 keeps every backup and the maximum is 50. The limit is applied after each successful backup.
