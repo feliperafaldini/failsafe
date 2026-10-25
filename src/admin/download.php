@@ -68,7 +68,7 @@ function failsafe_handle_download_backup() {
 	nocache_headers();
 
 	// A compressed response would send a Content-Length that does not match the file.
-	ini_set( 'zlib.output_compression', 'Off' ); // phpcs:ignore WordPress.PHP.IniSet.Risky -- Needed so Content-Length matches the streamed file; see DESIGN.md section 8.
+	ini_set( 'zlib.output_compression', 'Off' ); // phpcs:ignore WordPress.PHP.IniSet.Risky, Squiz.PHP.DiscouragedFunctions.Discouraged -- Needed so Content-Length matches the streamed file; see DESIGN.md section 8.
 
 	header( 'Content-Type: ' . ( 'zip' === $type ? 'application/zip' : 'application/octet-stream' ) );
 	header( 'Content-Disposition: attachment; filename="' . basename( $real ) . '"' );

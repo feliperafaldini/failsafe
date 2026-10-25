@@ -189,7 +189,7 @@ function failsafe_estimate_database_size() {
 
 	$wpdb->last_error = '';
 
-	$bytes = $wpdb->get_var(
+	$bytes = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- information_schema is read-only metadata; $wpdb has no API for it and there is no cache to invalidate.
 		$wpdb->prepare(
 			'SELECT COALESCE( SUM( DATA_LENGTH + INDEX_LENGTH ), 0 )
 			FROM information_schema.TABLES
