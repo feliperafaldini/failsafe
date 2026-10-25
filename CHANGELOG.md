@@ -66,6 +66,7 @@ None of these has a version or a date.
 - A partial ZIP no longer shows up as a valid backup: the file is deleted when creation fails.
 - Simultaneous backups no longer overwrite each other; collisions in the same second get a suffix.
 - Database errors during the dump still stop the run instead of producing an incomplete file.
+- The run lock carries a token and is released only by the request that owns it, so a run that stalled past the timeout no longer deletes the lock another run legitimately holds.
 - The restore never writes site files into the web root: the extracted content is validated and discarded.
 - A safety backup is created before any write to the database; without it, the restore does not start.
 - The object cache is flushed after a restore, even when it fails halfway.

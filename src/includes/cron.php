@@ -249,7 +249,12 @@ function failsafe_cron_acquire_lock() {
 		return new WP_Error( 'failsafe_cron_locked', __( 'A scheduled backup is already running.', 'failsafe-backup' ) );
 	}
 
-	if ( ! add_option( FAILSAFE_CRON_LOCK_OPTION, time(), '', false ) && ! failsafe_cron_take_over_stale_lock() ) {
+	$token = wp_generate_uuid4();
+	$value = time() . ':' . $token;
+
+	if ( add_option( FAILSAFE_CRON_LOCK_OPTION, $value, '', false ) ) {
+		$GLOBALS['failsafe_cron_lock_value'] = $value;
+	} elseif ( ! failsafe_cron_take_over_stale_lock( $token ) ) {
 		return new WP_Error( 'failsafe_cron_locked', __( 'A scheduled backup is already running.', 'failsafe-backup' ) );
 	}
 
@@ -261,33 +266,51 @@ function failsafe_cron_acquire_lock() {
 /**
  * Replaces a lock left behind by a run that died without releasing it.
  *
- * The UPDATE only matches the exact stale value, so two requests cannot both
- * steal the same lock: the database picks a single winner.
+ * The UPDATE only matches the exact value that was read, so two requests
+ * cannot both steal the same lock: the database picks a single winner.
  *
+ * @param string $token Optional lock token; generated when empty.
  * @return bool True when this request now owns the lock.
  */
-function failsafe_cron_take_over_stale_lock() {
+function failsafe_cron_take_over_stale_lock( $token = '' ) {
 	global $wpdb;
 
-	$started = (int) get_option( FAILSAFE_CRON_LOCK_OPTION, 0 );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- The raw value is required for the compare-and-swap below; get_option() would hand back a cached copy that another request may already have replaced.
+	$raw = $wpdb->get_var(
+		$wpdb->prepare(
+			'SELECT option_value FROM %i WHERE option_name = %s',
+			$wpdb->options,
+			FAILSAFE_CRON_LOCK_OPTION
+		)
+	);
+
+	if ( ! is_string( $raw ) || '' === $raw ) {
+		return false;
+	}
+
+	// The stored value is "timestamp:token"; older locks hold a bare timestamp.
+	$started = (int) $raw;
 
 	if ( $started <= 0 || ( time() - $started ) < failsafe_cron_lock_timeout() ) {
 		return false;
 	}
 
-	$sql = 'UPDATE ' . $wpdb->prepare( '%i', $wpdb->options )
-		. ' SET option_value = ' . (int) time()
-		. " WHERE option_name = '" . esc_sql( FAILSAFE_CRON_LOCK_OPTION ) . "'"
-		. " AND option_value = '" . esc_sql( (string) $started ) . "'";
+	if ( '' === $token ) {
+		$token = wp_generate_uuid4();
+	}
 
-	/*
-	 * Compare-and-swap: the UPDATE only matches while the row still holds the
-	 * stale timestamp, so two requests cannot both take over the same lock.
-	 * The identifier goes through %i and the values through esc_sql(), per the
-	 * project SQL conventions; the option cache is cleared right below.
-	 */
-	// phpcs:ignore -- The statement is assembled with %i and esc_sql(); see the note above.
-	$updated = $wpdb->query( $sql );
+	$value = time() . ':' . $token;
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Conditional update: the options API has no compare-and-swap, and the WHERE clause is what keeps two requests from taking the same lock.
+	$updated = $wpdb->query(
+		$wpdb->prepare(
+			'UPDATE %i SET option_value = %s WHERE option_name = %s AND option_value = %s',
+			$wpdb->options,
+			$value,
+			FAILSAFE_CRON_LOCK_OPTION,
+			$raw
+		)
+	);
 
 	wp_cache_delete( FAILSAFE_CRON_LOCK_OPTION, 'options' );
 
@@ -295,18 +318,50 @@ function failsafe_cron_take_over_stale_lock() {
 		return false;
 	}
 
+	$GLOBALS['failsafe_cron_lock_value'] = $value;
+
 	failsafe_log( 'cron: took over a stale backup lock' );
 
 	return true;
 }
 
 /**
- * Releases the run lock. Safe to call when no lock is held.
+ * Releases the run lock, but only while this request still owns it.
  *
+ * A run that stalls past the timeout loses the lock to another request; when
+ * it finally ends it must not delete the lock that run legitimately took.
+ *
+ * @param bool $force Delete the lock even when this request does not own it.
  * @return void
  */
-function failsafe_cron_release_lock() {
-	delete_option( FAILSAFE_CRON_LOCK_OPTION );
+function failsafe_cron_release_lock( $force = false ) {
+	global $wpdb;
+
+	$value = isset( $GLOBALS['failsafe_cron_lock_value'] ) ? (string) $GLOBALS['failsafe_cron_lock_value'] : '';
+
+	if ( ! $force && '' !== $value ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Conditional delete, so a run that lost its lock cannot remove the lock another run is holding.
+		$deleted = $wpdb->query(
+			$wpdb->prepare(
+				'DELETE FROM %i WHERE option_name = %s AND option_value = %s',
+				$wpdb->options,
+				FAILSAFE_CRON_LOCK_OPTION,
+				$value
+			)
+		);
+
+		wp_cache_delete( FAILSAFE_CRON_LOCK_OPTION, 'options' );
+
+		if ( 1 !== (int) $deleted ) {
+			failsafe_log( 'cron: lock belongs to another run, leaving it in place' );
+			return;
+		}
+	} else {
+		delete_option( FAILSAFE_CRON_LOCK_OPTION );
+	}
+
+	unset( $GLOBALS['failsafe_cron_lock_value'] );
+
 	delete_transient( FAILSAFE_CRON_LOCK_TRANSIENT );
 }
 

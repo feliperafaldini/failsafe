@@ -63,7 +63,8 @@ Nada disso tem versão ou data definida.
 
 - Um ZIP parcial deixou de aparecer como backup válido: o arquivo é apagado quando a criação falha.
 - Backups simultâneos não se sobrescrevem mais; colisões no mesmo segundo recebem sufixo.
-- Erros de banco durante o dump continuam interrompendo a execução em vez de gerar um arquivo incompleto.
+- Erros de banco durante o dump ainda interrompem a execução em vez de gerar um arquivo incompleto.
+- O lock carrega um token e só é liberado pela requisição que o detém, então uma execução que estourou o tempo não apaga mais o lock de outra execução.
 - A restauração não grava arquivos do site no webroot: o conteúdo extraído é validado e descartado.
 - Um backup de segurança é criado antes de qualquer escrita no banco; sem ele, a restauração não começa.
 - O cache de objetos é limpo depois da restauração, mesmo quando ela falha no meio.

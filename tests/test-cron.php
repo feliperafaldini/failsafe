@@ -237,6 +237,33 @@ failsafe_assert(
 
 failsafe_cron_release_lock();
 
+echo "\nlock ownership\n";
+
+failsafe_cron_release_lock( true );
+
+failsafe_assert( true === failsafe_cron_acquire_lock(), 'the lock can be acquired for the ownership checks' );
+failsafe_assert(
+	1 === preg_match( '/^\d+:[0-9a-f-]{36}$/', (string) get_option( FAILSAFE_CRON_LOCK_OPTION, '' ) ),
+	'the lock stores a timestamp and a token'
+);
+
+// Another run took the lock over while this one was stalled.
+update_option( FAILSAFE_CRON_LOCK_OPTION, time() . ':foreign-token', false );
+
+failsafe_cron_release_lock();
+
+failsafe_assert(
+	false !== get_option( FAILSAFE_CRON_LOCK_OPTION, false ),
+	'release leaves a lock owned by another run in place'
+);
+
+failsafe_cron_release_lock( true );
+
+failsafe_assert(
+	false === get_option( FAILSAFE_CRON_LOCK_OPTION, false ),
+	'force release removes the foreign lock'
+);
+
 echo "\nfailsafe_cron_store_result()\n";
 
 failsafe_cron_store_result( 'ok', '', '', 2 );
