@@ -1,127 +1,129 @@
 # Changelog
 
-Todas as mudanças relevantes deste plugin são registradas neste arquivo.
+All notable changes to this plugin are recorded in this file.
 
-O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o projeto usa versionamento semântico. O `readme.txt` em `src/` repete o histórico em inglês para o diretório do WordPress.org.
+Versão em português: [CHANGELOG.pt-BR.md](CHANGELOG.pt-BR.md).
 
-## [Não publicado]
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses semantic versioning. `src/readme.txt` repeats the history in English for the WordPress.org directory.
 
-### Planejado
+## [Unreleased]
 
-- Suporte a multisite.
-- Restauração dos arquivos do site pela interface.
-- Processamento em background para sites grandes.
-- Inclusão de views, triggers, procedures e events no dump.
+### Planned
 
-Nada disso tem versão ou data definida.
+- Multisite support.
+- Restoring site files from the admin.
+- Background processing for large sites.
+- Dumping views, triggers, procedures and events.
+
+None of these has a version or a date.
 
 ## [0.2.0] - 2026-10-24
 
-### Adicionado
+### Added
 
-- Página **Failsafe** no menu principal, com a tabela de backups (data, arquivos, tamanho e ações).
-- Download do `.zip` e do `.sql` por `admin-post.php`, com nonce e caminho reconstruído a partir do nome validado do backup.
-- Exclusão em POST com nonce por conjunto, removendo os dois arquivos de uma vez.
-- Aviso de conjunto incompleto: um backup com apenas um dos arquivos é marcado na tabela e não é removido pela retenção.
-- Widget do painel com o último backup, a quantidade de conjuntos e o tamanho total em disco, além do botão **Backup agora**.
-- Nomes datados no formato `failsafe-YYYYMMDD-HHMMSS`, com sufixo numérico quando dois backups começam no mesmo segundo.
-- Retenção de backups completos, com padrão 5, limite configurável de 0 a 50 e 0 para manter todos.
-- Dump gravado em streaming, em blocos de 500 linhas por consulta e lotes de 100 `INSERT`, mantendo a memória constante independentemente do tamanho do banco.
-- Escrita atômica do dump: arquivo `.part` movido para o destino pelo `WP_Filesystem`; um ZIP com falha é apagado para não parecer um backup válido.
-- Restauração do banco em **Ferramentas > Failsafe Restore**, com confirmação digitada do nome do backup.
-- Restauração lê o dump do disco em blocos de 64 KB e executa cada instrução assim que ela termina, sem carregar o arquivo inteiro.
-- Restauração limitada a instruções que um dump precisa (`SET`, `DROP/CREATE/ALTER TABLE`, `INSERT`, `REPLACE`, `LOCK/UNLOCK TABLES`, controle de transação); qualquer outro comando aborta a operação.
-- Importação em modo de commit único por execução: um dump de 38 MB caiu de 5min04s para cerca de 19s.
-- Backup de segurança completo antes da restauração; se ele falhar, a restauração é abortada.
-- Extração do ZIP para um diretório temporário fora do webroot, com rejeição de caminhos absolutos, referências `..`, bytes nulos e links simbólicos, e limite de 50.000 entradas.
-- Execução do dump com verificação de erro por instrução; falhas em comandos `SET` são registradas e ignoradas, e as demais interrompem a restauração.
-- O backup restaurado e o backup de segurança não são apagados pela rotina de restauração.
-- Agendamento de backups com as frequências horária, duas vezes ao dia, diária e semanal, desligado ou ligado nas configurações e diário por padrão após a ativação.
-- Lock de execução para backups agendados e manuais, com transiente de apoio e retomada de lock abandonado após 15 minutos.
-- Tela de configurações com o estado do agendamento, a última execução, o último resultado, a próxima execução e o limite de retenção.
-- Avisos na tela de configurações para evento atrasado, evento ausente e `DISABLE_WP_CRON`.
-- Checagem prévia de memória (piso fixo de 64 MB, já que o dump é streaming), disco (cerca de 2 vezes o banco mais os arquivos do site, mais 16 MB) e tempo de execução (cerca de 5 segundos mais 1 segundo por 8 MB de banco e arquivos).
-- Cache de 1 hora para o tamanho total dos arquivos do site, usado no cálculo de disco.
-- Cache de 10 minutos para o tamanho estimado do banco, consultado em `information_schema`.
-- E-mail de status para backups manuais: falha sempre que o endereço do administrador é válido, sucesso apenas com a opção `failsafe_email_on_success` ligada; destinatário configurável pelo filtro `failsafe_status_email_recipient`.
-- Ação `failsafe_restore_completed` disparada após uma restauração bem-sucedida.
-- `Requires PHP: 8.0` no cabeçalho do plugin e no `readme.txt`.
+- **Failsafe** page in the main menu, with the backup table (date, files, size and actions).
+- `.zip` and `.sql` downloads through `admin-post.php`, with a nonce and a path rebuilt from the validated backup name.
+- Deletion by POST with a per-set nonce, removing both files at once.
+- Incomplete-set warning: a backup missing one of its files is flagged in the table and is not removed by retention.
+- Dashboard widget with the latest backup, the number of sets, the total size on disk and the **Backup now** button.
+- Timestamped names in the `failsafe-YYYYMMDD-HHMMSS` format, with a numeric suffix when two backups start in the same second.
+- Retention of complete sets, default 5, configurable from 0 to 50, with 0 keeping everything.
+- Dump streamed to disk, 500 rows per query and batches of 100 `INSERT` commands, keeping memory flat regardless of database size.
+- Atomic dump write: a `.part` file moved into place by `WP_Filesystem`; a failed ZIP is deleted so it never looks like a valid backup.
+- Database restore under **Tools > Failsafe Restore**, with the backup name typed as confirmation.
+- Restore reads the dump from disk in 64 KB blocks and runs each statement as soon as it ends, without loading the whole file.
+- Restore limited to the statements a dump needs (`SET`, `DROP/CREATE/ALTER TABLE`, `INSERT`, `REPLACE`, `LOCK/UNLOCK TABLES`, transaction control); any other command aborts the operation.
+- Single-commit import per run: a 38 MB dump went from 5m04s to about 19s.
+- Full safety backup before a restore; if it fails, the restore is aborted.
+- ZIP extracted to a temporary directory outside the web root, rejecting absolute paths, `..` references, null bytes and symbolic links, with a 50,000-entry limit.
+- Statement-by-statement error checking during the restore; `SET` failures are logged and skipped, everything else stops the restore.
+- The restored backup and the safety backup are not deleted by the restore routine.
+- Scheduled backups with hourly, twice daily, daily and weekly frequencies, enabled or disabled in settings and defaulting to daily after activation.
+- Run lock for scheduled and manual backups, backed by a transient, with takeover of a lock abandoned for more than 15 minutes.
+- Settings screen with the schedule status, last run, last result, next run and retention limit.
+- Notices on the settings screen for a late event, a missing event and `DISABLE_WP_CRON`.
+- Pre-flight checks for memory (fixed 64 MB floor, since the dump is streamed), disk (about twice the database plus the site files, plus 16 MB) and run time (about 5 seconds plus 1 second per 8 MB of database and files).
+- One-hour cache for the total size of the site files, used in the disk calculation.
+- Ten-minute cache for the estimated database size, read from `information_schema`.
+- Status e-mail for manual backups: failures whenever the administrator address is valid, success only with the `failsafe_email_on_success` option; recipient configurable through the `failsafe_status_email_recipient` filter.
+- `failsafe_restore_completed` action fired after a successful restore.
+- `Requires PHP: 8.0` in the plugin header and in `readme.txt`.
 
-### Alterado
+### Changed
 
-- O backup deixou de usar os nomes fixos `failsafe-backup.sql` e `failsafe-backup.zip` e passou a criar um conjunto datado por execução; versões antigas não são sobrescritas.
-- O widget do painel deixou de ser apenas o formulário de backup e passou a resumir o último backup, a quantidade e o tamanho total.
-- O resultado do backup manual agora redireciona para a página **Backups** com aviso de sucesso ou de erro, em vez de exibir apenas uma mensagem no widget.
-- A retenção é aplicada depois de todo backup concluído, manual ou agendado.
-- O ZIP contém o dump com o nome do conjunto (`failsafe-YYYYMMDD-HHMMSS.sql`); a restauração também aceita o nome fixo usado pela 0.1.0.
-- O `Uninstall` remove a opção de retenção e, com `failsafe_delete_backups_on_uninstall` ligado, o diretório de backups e essa opção; as opções de agendamento, status, e-mail e cache de tamanho permanecem.
+- The backup stopped using the fixed names `failsafe-backup.sql` and `failsafe-backup.zip` and now creates a timestamped set per run; older versions are never overwritten.
+- The dashboard widget is no longer just the backup form and now summarises the latest backup, the number of sets and the total size.
+- The result of a manual backup now redirects to the **Backups** page with a success or error notice instead of only a message in the widget.
+- Retention runs after every completed backup, manual or scheduled.
+- The ZIP holds the dump under the set name (`failsafe-YYYYMMDD-HHMMSS.sql`); the restore also accepts the fixed name used by 0.1.0.
+- `Uninstall` removes every plugin option and the lock transient; with `failsafe_delete_backups_on_uninstall` enabled it also removes the backup directory.
 
-### Corrigido
+### Fixed
 
-- Um ZIP parcial deixou de aparecer como backup válido: o arquivo é apagado quando a criação falha.
-- Backups simultâneos não se sobrescrevem mais; colisões no mesmo segundo recebem sufixo.
-- Erros de banco durante o dump continuam interrompendo a execução em vez de gerar um arquivo incompleto.
-- A restauração não grava arquivos do site no webroot: o conteúdo extraído é validado e descartado.
-- Um backup de segurança é criado antes de qualquer escrita no banco; sem ele, a restauração não começa.
-- O cache de objetos é limpo depois da restauração, mesmo quando ela falha no meio.
+- A partial ZIP no longer shows up as a valid backup: the file is deleted when creation fails.
+- Simultaneous backups no longer overwrite each other; collisions in the same second get a suffix.
+- Database errors during the dump still stop the run instead of producing an incomplete file.
+- The restore never writes site files into the web root: the extracted content is validated and discarded.
+- A safety backup is created before any write to the database; without it, the restore does not start.
+- The object cache is flushed after a restore, even when it fails halfway.
 
-### Segurança
+### Security
 
-- Todas as ações de backup, download, exclusão e restauração exigem capability (`manage_options` por padrão, filtrável) e nonce.
-- A exclusão só aceita POST, com nonce específico do conjunto.
-- Nomes de backup são validados por expressão regular antes de virar caminho de arquivo.
-- O download valida o caminho real contra o diretório de backups e recusa links simbólicos.
-- A extração do ZIP recusa caminhos absolutos, referências ao diretório pai, bytes nulos e links simbólicos antes de extrair qualquer entrada.
-- O diretório de backups continua protegido por `.htaccess` (Apache) e `index.php`; no nginx é preciso uma regra própria.
-- O ZIP contém `wp-config.php` e o dump do banco; deve ser tratado como dado sensível.
+- Every backup, download, deletion and restore action requires a capability (`manage_options` by default, filterable) and a nonce.
+- Deletion only accepts POST, with a set-specific nonce.
+- Backup names are validated by regular expression before becoming a file path.
+- Downloads validate the real path against the backup directory and refuse symbolic links.
+- ZIP extraction rejects absolute paths, parent-directory references, null bytes and symbolic links before extracting any entry.
+- The backup directory stays protected by `.htaccess` (Apache) and `index.php`; nginx needs its own rule.
+- The ZIP contains `wp-config.php` and the database dump and must be treated as sensitive data.
 
-### Conhecido
+### Known
 
-- O dump é montado em memória; bancos grandes podem estourar o `memory_limit`, embora a checagem prévia interrompa o caso previsível.
-- O backup roda na requisição do admin ou do WP-Cron e pode atingir o `max_execution_time`; não há processamento em background.
-- O WP-Cron só executa com tráfego; sites sem visitas podem atrasar o backup agendado.
-- A proteção do diretório depende de `.htaccess`; no nginx é preciso uma regra própria.
-- Multisite não é suportado.
-- A restauração cobre apenas o banco; os arquivos do site não são restaurados.
-- Uma restauração interrompida por erro pode deixar o banco parcialmente restaurado.
-- Views, triggers, procedures e events não entram no dump.
-- A retenção não remove conjuntos incompletos; eles ficam até a exclusão manual.
-- O backup de segurança passa pela retenção; um conjunto fora do limite pode ser removido nesse momento, inclusive o que seria restaurado.
-- Uma segunda execução durante um backup em andamento é recusada com aviso; ela não entra em fila.
-- E-mails de status são enviados apenas por backups manuais; uma falha agendada fica registrada no status e no log.
-- As opções `failsafe_email_on_success` e `failsafe_delete_backups_on_uninstall` não têm campo nas telas de configuração.
-- Backups da 0.1.0 com nomes fixos não são listados nem removidos pela retenção.
+- The dump is streamed with constant memory; the remaining limit is request time.
+- The backup runs inside the admin or WP-Cron request and can hit `max_execution_time`; there is no background processing.
+- WP-Cron only runs with traffic; sites without visits can delay a scheduled backup.
+- Directory protection relies on `.htaccess`; nginx needs its own rule.
+- Multisite is not supported.
+- The restore covers only the database; site files are not restored.
+- A restore interrupted by an error can leave the database partially restored.
+- Views, triggers, procedures and events are not included in the dump.
+- Retention does not remove incomplete sets; they stay until deleted by hand.
+- The safety backup counts toward retention; a set beyond the limit can be removed at that moment, including the one that would be restored.
+- A second run started while a backup is in progress is refused with a warning; it is not queued.
+- Status e-mails are sent only by manual backups; a scheduled failure is recorded in the status and the log.
+- The `failsafe_email_on_success` and `failsafe_delete_backups_on_uninstall` options have no field in the settings screens.
+- 0.1.0 backups with fixed names are neither listed nor removed by retention.
 
 ## [0.1.0] - 2026-10-24
 
-### Adicionado
+### Added
 
-- Widget **Failsafe Backup** no painel com o botão **Backup agora**.
-- Handler `admin_post_failsafe_run_backup` com nonce e checagem de capability (`manage_options` por padrão, filtrável por `failsafe_backup_capability`).
-- Dump SQL de todas as tabelas do banco atual, com cabeçalho de site e data, `SET SESSION sql_mode = ''`, `SET NAMES` com charset e collation do banco, snapshot consistente, `DROP TABLE IF EXISTS`, `CREATE TABLE` e um `INSERT` por linha.
-- Checagem de `$wpdb->last_error` depois de cada consulta; erro vira `WP_Error` e interrompe o backup em vez de gerar arquivo parcial.
-- Literais hexadecimais para valores binários ou fora de UTF-8.
-- ZIP com o dump na raiz e todos os arquivos legíveis do site, exceto o diretório de backups, `wp-content/cache` e `wp-content/upgrade`.
-- Criação e proteção de `wp-content/failsafe-backups/` na ativação e a cada acesso ao admin, com `.htaccess` e `index.php`.
-- Aviso de sucesso no painel com o tamanho do dump e do ZIP.
-- Log condicional em `wp-content/debug.log` quando `WP_DEBUG` está ligado.
-- Desinstalação limpa: remove `failsafe_retention_count` e, quando habilitado, `failsafe_delete_backups_on_uninstall`; os backups só são apagados com a opção de exclusão ligada.
-- Camada de armazenamento com nomes datados, listagem, exclusão e retenção (ainda sem interface).
-- Suíte de testes com lint, testes unitários no container e round-trip de importação e reimportação do dump.
+- **Failsafe Backup** dashboard widget with the **Backup now** button.
+- `admin_post_failsafe_run_backup` handler with a nonce and a capability check (`manage_options` by default, filterable through `failsafe_backup_capability`).
+- SQL dump of every table in the current database, with a site and date header, `SET SESSION sql_mode = ''`, `SET NAMES` using the database charset and collation, a consistent snapshot, `DROP TABLE IF EXISTS`, `CREATE TABLE` and one `INSERT` per row.
+- `$wpdb->last_error` checked after every query; an error becomes a `WP_Error` and stops the backup instead of producing a partial file.
+- Hexadecimal literals for binary or non-UTF-8 values.
+- ZIP with the dump at the root plus every readable site file, except the backup directory, `wp-content/cache` and `wp-content/upgrade`.
+- `wp-content/failsafe-backups/` created and protected on activation and on every admin request, with `.htaccess` and `index.php`.
+- Success notice in the admin with the dump and ZIP sizes.
+- Conditional logging to `wp-content/debug.log` when `WP_DEBUG` is on.
+- Clean uninstall: removes `failsafe_retention_count` and, when enabled, `failsafe_delete_backups_on_uninstall`; backups are only deleted with the opt-in enabled.
+- Storage layer with timestamped names, listing, deletion and retention (no interface yet).
+- Test suite with lint, container unit tests and a dump import/reimport round-trip.
 
-### Segurança
+### Security
 
-- Formulário protegido por nonce e capability.
-- Saída do painel escapada.
-- Nome de backup validado por expressão regular antes de virar caminho de arquivo.
-- Diretório de backups bloqueado por `.htaccess` (Apache) e com `index.php`.
+- Form protected by a nonce and a capability.
+- Admin output escaped.
+- Backup name validated by regular expression before becoming a file path.
+- Backup directory blocked by `.htaccess` (Apache) and an `index.php` file.
 
-### Conhecido
+### Known
 
-- O backup roda na requisição do admin e pode estourar tempo ou memória em sites grandes.
-- A proteção do diretório depende de `.htaccess`; em nginx é preciso uma regra própria.
-- Multisite não é suportado.
-- Views, triggers, procedures e events não entram no dump.
-- Apenas o backup mais recente é mantido: os nomes dos arquivos são fixos e são sobrescritos.
-- Restauração, agendamento e lista de backups ainda não existem.
-- O ZIP contém `wp-config.php` e o dump do banco; deve ser tratado como dado sensível.
+- The backup runs inside the admin request and can hit time or memory limits on large sites.
+- Directory protection relies on `.htaccess`; nginx needs its own rule.
+- Multisite is not supported.
+- Views, triggers, procedures and events are not included in the dump.
+- Only the most recent backup is kept: the file names are fixed and get overwritten.
+- Restore, scheduling and the backup list do not exist yet.
+- The ZIP contains `wp-config.php` and the database dump and must be treated as sensitive data.

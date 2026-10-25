@@ -19,3 +19,4 @@ bin/
 *.zip
 *.log
 .env
+*.pt-BR.md

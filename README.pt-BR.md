@@ -1,0 +1,141 @@
+# Failsafe Backup
+
+Plugin de backup para WordPress. Cria um conjunto datado com um dump `.sql` do banco e um `.zip` com o dump e os arquivos do site, lista e gerencia os backups no painel, restaura o banco a partir de um ZIP e pode rodar em um agendamento.
+
+Este repositório contém o plugin e o ambiente local de desenvolvimento. Apenas o conteúdo de `src/` é publicado no diretório de plugins do WordPress.org.
+
+English version: [README.md](README.md).
+
+## Estado atual (0.2.0)
+
+O que funciona hoje:
+
+- Backup manual pelo botão **Backup agora**, no widget do painel ou na página **Failsafe**, protegido por nonce e capability (`manage_options` por padrão, filtrável por `failsafe_backup_capability`).
+- Conjuntos datados no formato `failsafe-YYYYMMDD-HHMMSS`, com `.sql` e `.zip`; um backup novo não sobrescreve o anterior. Colisões no mesmo segundo recebem sufixo `-2` a `-9`.
+- Dump de todas as tabelas do banco atual, com `DROP TABLE IF EXISTS`, `CREATE TABLE` e `INSERT` por linha, snapshot consistente, `FOREIGN_KEY_CHECKS = 0`, `COMMIT` no fim e checagem de `$wpdb->last_error` a cada consulta.
+- Dump gravado em streaming: 500 linhas por consulta, lotes de 100 `INSERT` e escrita direta no arquivo, com memória constante.
+- ZIP com o dump na raiz e todos os arquivos do site, exceto o diretório de backups, `wp-content/cache` e `wp-content/upgrade`.
+- Escrita atômica via `.part` e `WP_Filesystem`; ZIP parcial é apagado para não aparecer como backup válido.
+- Página **Failsafe** com tabela de data, arquivos, tamanho e ações, incluindo download do `.zip` e do `.sql` por `admin-post.php` com nonce e exclusão em POST com nonce por conjunto.
+- Retenção de backups completos, com padrão 5, faixa de 0 a 50 e 0 para manter todos. Conjuntos incompletos ficam até a exclusão manual.
+- Widget do painel com o último backup, a quantidade de conjuntos, o tamanho total em disco e o link para a lista.
+- Restauração do banco em **Ferramentas > Failsafe Restore**, com confirmação digitada do nome do backup, backup de segurança completo antes da restauração e aviso de que os arquivos do site não são alterados.
+- Restauração lida do disco em blocos de 64 KB, com allowlist de instruções (`SET`, `DROP/CREATE/ALTER TABLE`, `INSERT`, `REPLACE`, `LOCK/UNLOCK TABLES` e controle de transação) e commit único por execução.
+- Agendamento com as frequências horária, duas vezes ao dia, diária e semanal, lock que impede duas execuções simultâneas (agendadas ou manuais) e retomada de lock abandonado.
+- Tela **Configurações > Failsafe Backup** com o estado do agendamento (última execução, resultado, próxima execução), frequência e retenção.
+- Checagem prévia de memória, espaço em disco e tempo de execução antes de iniciar o dump.
+- E-mail de status para backups manuais: falha quando o endereço do administrador é válido, sucesso apenas com a opção `failsafe_email_on_success` ligada.
+- Diretório `wp-content/failsafe-backups/` criado na ativação e protegido por `.htaccess` e `index.php`.
+- Desinstalação que remove todas as opções do plugin e o transient do lock; os backups só são apagados com `failsafe_delete_backups_on_uninstall` ligado.
+
+O que ainda **não** existe: suporte a multisite, restauração dos arquivos do site pela interface, processamento em background para site grande e inclusão de views, triggers, procedures e events no dump. Também não há campos nas telas para `failsafe_email_on_success` e `failsafe_delete_backups_on_uninstall`; as duas opções precisam ser definidas por código ou pela tabela de options.
+
+## Requisitos
+
+- WordPress 6.2 ou superior (testado em 7.1.3, a versão mais recente publicada).
+- PHP 8.0 ou superior, como declaram o cabeçalho do plugin e o `readme.txt`.
+- Extensão PHP `zip` (`ZipArchive`) habilitada.
+- Extensão PHP `mbstring` (usada para detectar valores binários no dump).
+- Permissão de escrita em `wp-content/` para o usuário do servidor web.
+- Para backup, usuário do banco com permissão para `SHOW TABLES`, `SHOW CREATE TABLE`, `SELECT` e leitura de `information_schema`.
+- Para restauração, permissão para `DROP TABLE`, `CREATE TABLE` e `INSERT`, já que o dump recria as tabelas.
+- WP-Cron com tráfego no site ou um cron do sistema chamando `wp-cron.php` para os backups agendados rodarem no horário.
+- Instalação single-site; multisite não é suportado.
+
+## Estrutura
+
+- `src/` — código do plugin (é o que sobe para o diretório oficial).
+  - `src/failsafe.php` — cabeçalho, constantes (`FAILSAFE_VERSION`, `FAILSAFE_BACKUP_DIR`, `FAILSAFE_RETENTION_DEFAULT`) e mapa de `require_once`.
+  - `src/includes/storage.php` — nomes, caminhos, listagem, exclusão, retenção e escrita atômica.
+  - `src/includes/limits.php` — estimativas de banco e de arquivos do site, e checagens de memória, disco e tempo.
+  - `src/includes/dump.php` — escritor do dump em streaming.
+  - `src/includes/notifications.php` — montagem e envio do e-mail de status.
+  - `src/includes/restore.php` — parser incremental de SQL, allowlist, execução do dump, extração validada do ZIP e limpeza do diretório temporário.
+  - `src/includes/cron.php` — evento agendado, frequências, lock, execução e registro do último resultado.
+  - `src/admin/setup.php` — cria e protege o diretório de backups.
+  - `src/admin/menu.php` — menu **Failsafe**, hook da página e carregamento do JS.
+  - `src/admin/actions.php` — handler do backup manual e as funções de caminho, ZIP e orquestração.
+  - `src/admin/backups-page.php` — página **Backups**, tabela, estado vazio e avisos.
+  - `src/admin/download.php` — download do `.zip` e do `.sql` por `admin-post.php`.
+  - `src/admin/delete.php` — exclusão em POST com nonce por conjunto.
+  - `src/admin/dashboard.php` — widget do painel.
+  - `src/admin/restore.php` — tela e handler de **Ferramentas > Failsafe Restore**.
+  - `src/admin/settings.php` — tela de configurações, opções, sanitização e status do agendamento.
+  - `src/admin/format.php` — formatação de data e tamanho.
+  - `src/admin/partials.php` — botão de backup e ações da tabela.
+  - `src/uninstall.php` — limpeza das opções e, com opt-in, dos backups.
+  - `src/assets/admin.js` — confirmação das ações destrutivas marcadas com `data-confirm`.
+  - `src/languages/failsafe.pot` — template de tradução.
+  - `src/readme.txt` — texto do diretório do WordPress.org.
+- `bin/build.sh` — gera os dois pacotes a partir de `src/`.
+- `tests/` — lint, testes unitários, streaming, cron, configurações, round-trip e protocolo do desastre. Ficam fora de `src/` para não irem no pacote do plugin.
+- `stubs/` — stubs do WordPress para análise estática. Não fazem parte do pacote.
+- `docker-compose.yml` — ambiente local; não faz parte do plugin publicado.
+- `.distignore` — arquivos que não devem entrar no pacote.
+- `CHANGELOG.md` / `CHANGELOG.pt-BR.md` — histórico de versões em inglês e português.
+- `MATURITY.md` / `SUBMISSION.md` — avaliação de maturidade e checklist de publicação.
+- `AGENTS.md` — convenções do projeto.
+
+## Rodar localmente
+
+```sh
+docker compose up -d      # site em http://localhost:8080
+docker compose down       # para os containers
+```
+
+Os containers são `failsafe-wordpress-1` e `failsafe-db-1`. As credenciais locais ficam apenas em `docker-compose.yml`.
+
+## Build
+
+```sh
+./bin/build.sh
+```
+
+O script empacota `src/` em dois arquivos: `dist/failsafe.zip` (arquivos na raiz, para o `trunk/` do SVN) e `dist/failsafe-<versão>.zip` (tudo dentro de `failsafe/`, para o instalador de plugins). `src/assets/admin.js` entra nos dois; `tests/`, `stubs/`, `bin/` e os arquivos de repositório ficam fora.
+
+## Testes
+
+```sh
+./tests/run-tests.sh
+./tests/disaster-protocol.sh
+```
+
+O primeiro script exige a stack do Docker rodando e executa:
+
+1. `php -l` em `src/failsafe.php`, `src/uninstall.php`, `src/admin/*.php` e `src/includes/*.php`.
+2. Testes dentro do container WordPress: `test-dump.php`, `test-stream.php`, `test-zip.php`, `test-storage.php`, `test-limits.php`, `test-restore.php`, `test-cron.php` e `test-settings.php`.
+3. Round-trip: copia o dump gerado, importa num banco `teste_ci` descartável, importa de novo para provar que o `DROP TABLE` funciona e compara a contagem de linhas de `wp_posts`, `wp_options` e `wp_users`.
+
+O segundo cria um post marcador, gera um backup, apaga o post, restaura o banco, confirma que o post voltou e que o site responde, e limpa o marcador.
+
+O banco de teste é criado e destruído pelo próprio script. Nunca importe um dump num banco real.
+
+## Limitações conhecidas
+
+- **Tamanho do banco**: o maior cenário medido tem 150.000 linhas, 37,8 MB de dump e 42 MB de ZIP, gerados em 8 segundos com pico de 42 MB de memória sob limite de 128 MB. A memória é constante porque o dump é gravado em streaming; o limite que resta é tempo.
+- **Timeout**: o backup roda na requisição do admin ou do WP-Cron. O cenário de 150.000 linhas levou 8 segundos para backup e 19,3 segundos para restauração; sob Apache o limite padrão é 30 segundos. Bancos várias vezes maiores precisam de processamento em background, que ainda não existe.
+- **WP-Cron depende de tráfego**: o backup agendado só começa quando o site recebe uma requisição ou quando `wp-cron.php` é chamado por um cron do sistema. Site sem visitas atrasa o agendamento.
+- **nginx**: a proteção do diretório depende de `.htaccess`. Em nginx é preciso uma regra própria no servidor ou definir `FAILSAFE_BACKUP_DIR` para um diretório fora do webroot.
+- **Multisite**: não suportado. Num multisite o dump inclui todas as tabelas da rede e todos os arquivos da instalação, sem separação por site.
+- **Restauração**: cobre apenas o banco; os arquivos do site não são restaurados. Uma falha no meio do dump pode deixar o banco parcialmente restaurado. Só conjuntos com ZIP não vazio podem ser restaurados pela tela, e o diretório temporário precisa ficar fora do webroot.
+- **Retenção durante a restauração**: a rotina não apaga o backup usado, mas o backup de segurança também passa pela retenção; um conjunto fora do limite pode ser removido nesse momento.
+- **Objetos de banco**: views, triggers, procedures e events não entram no dump.
+- **Retenção**: só remove conjuntos completos; um conjunto com um arquivo faltando fica até a exclusão manual.
+- **Lock**: uma segunda execução durante um backup em andamento é recusada com aviso, sem fila; é preciso tentar de novo depois.
+- **E-mail**: o e-mail de status é enviado pelo backup manual. Uma falha agendada fica registrada no status e no log, mas não gera e-mail.
+- **Backups da 0.1.0**: os nomes fixos `failsafe-backup.sql` e `failsafe-backup.zip` não são listados nem removidos pela retenção.
+- **Dados sensíveis**: o ZIP contém `wp-config.php` e o dump do banco, com hashes de senha e dados pessoais. Trate o arquivo como confidencial.
+
+## Dívida conhecida
+
+- `failsafe_email_on_success` e `failsafe_delete_backups_on_uninstall` não têm campo nas telas; precisam ser definidas por código ou pela tabela de options.
+- A restauração não tem limite de tamanho descompactado, apenas de número de entradas (50.000) e validação de caminhos.
+- O texto oficial é em inglês, como o diretório exige; existe `src/languages/failsafe.pot`, mas nenhuma tradução publicada.
+
+## Roadmap
+
+Restauração dos arquivos do site, suporte a multisite, processamento em background para sites grandes e dump de views, triggers, procedures e events estão planejados. Não há versão nem data prometida.
+
+## Licença
+
+GPLv2 ou superior. Veja https://www.gnu.org/licenses/gpl-2.0.html.
