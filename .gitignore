@@ -2,3 +2,7 @@
 *.log
 *.sql
 *.zip
+TASK.md
+REPORT.md
+DESIGN.md
+dist/
