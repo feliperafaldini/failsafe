@@ -14,6 +14,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! defined( 'FAILSAFE_MIN_MEMORY_BYTES' ) ) {
+	define( 'FAILSAFE_MIN_MEMORY_BYTES', 64 * MB_IN_BYTES );
+}
+
+if ( ! defined( 'FAILSAFE_SITE_SIZE_CACHE_TTL' ) ) {
+	define( 'FAILSAFE_SITE_SIZE_CACHE_TTL', HOUR_IN_SECONDS );
+}
+
 if ( ! defined( 'FAILSAFE_LIMIT_SAFETY_FACTOR' ) ) {
 	// Memory assumed per byte of database: the dump text plus the row copies.
 	define( 'FAILSAFE_LIMIT_SAFETY_FACTOR', 3 );
@@ -89,20 +97,75 @@ function failsafe_parse_size( $value ) {
 }
 
 /**
- * Memory the dump needs for a database of the given size.
+ * Memory a backup needs.
  *
- * @param int        $database_bytes Estimated database size in bytes.
- * @param float|null $factor         Multiplier; defaults to FAILSAFE_LIMIT_SAFETY_FACTOR.
+ * The dump is streamed to disk in chunks, so the requirement no longer grows
+ * with the database: the measured peak on a 38 MB dump was 42 MB, WordPress
+ * included. What is left is a fixed floor for the PHP process.
+ *
+ * @param int        $database_bytes Estimated database size in bytes, kept for backwards compatibility.
+ * @param float|null $factor         Ignored; kept for backwards compatibility.
  * @return int Bytes.
  */
-function failsafe_required_memory_bytes( $database_bytes, $factor = null ) {
-	if ( null === $factor ) {
-		$factor = FAILSAFE_LIMIT_SAFETY_FACTOR;
+function failsafe_required_memory_bytes( $database_bytes = 0, $factor = null ) {
+	unset( $database_bytes, $factor );
+
+	return (int) apply_filters( 'failsafe_required_memory_bytes', FAILSAFE_MIN_MEMORY_BYTES );
+}
+
+/**
+ * Total size of the site files that will go into the archive.
+ *
+ * The archive is what takes disk space, and on a normal site it is much larger
+ * than the database. Cached for an hour so a settings screen does not walk the
+ * whole installation on every request.
+ *
+ * @return int Bytes, 0 when it cannot be measured.
+ */
+function failsafe_estimate_site_bytes() {
+	$cached = get_transient( 'failsafe_site_size_cache' );
+
+	if ( is_numeric( $cached ) ) {
+		return (int) $cached;
 	}
 
-	$factor = max( 1, (float) $factor );
+	$root = rtrim( ABSPATH, '/\\' );
+	$skip = array( failsafe_backup_dir(), $root . '/wp-content/cache', $root . '/wp-content/upgrade' );
+	$size = 0;
 
-	return (int) ceil( max( 0, (int) $database_bytes ) * $factor );
+	try {
+		$iterator = new RecursiveIteratorIterator(
+			new RecursiveDirectoryIterator( $root, FilesystemIterator::SKIP_DOTS ),
+			RecursiveIteratorIterator::LEAVES_ONLY
+		);
+
+		foreach ( $iterator as $file ) {
+			$pathname = $file->getPathname();
+
+			if ( failsafe_path_is_excluded( $pathname, $skip ) ) {
+				continue;
+			}
+
+			$size += (int) $file->getSize();
+		}
+	} catch ( Exception $exception ) {
+		failsafe_log( 'site size: ' . $exception->getMessage() );
+
+		return 0;
+	}
+
+	set_transient( 'failsafe_site_size_cache', $size, FAILSAFE_SITE_SIZE_CACHE_TTL );
+
+	return $size;
+}
+
+/**
+ * Forgets the cached site size, after a restore or when files change a lot.
+ *
+ * @return void
+ */
+function failsafe_clear_site_size_cache() {
+	delete_transient( 'failsafe_site_size_cache' );
 }
 
 /**
@@ -246,19 +309,19 @@ function failsafe_check_limits() {
 		return new WP_Error(
 			'failsafe_limit_memory',
 			sprintf(
-				/* translators: 1: estimated database size, 2: memory required, 3: safety factor, 4: PHP memory limit. */
-				__( 'This site has about %1$s of database. Dumping it needs about %2$s of memory (%3$d times the database size), but PHP only allows %4$s. Raise the memory_limit setting or run the backup from the command line.', 'failsafe' ),
-				size_format( $database_bytes ),
+				/* translators: 1: memory required, 2: PHP memory limit. */
+				__( 'A backup needs about %1$s of memory to stream the dump and build the archive, but PHP only allows %2$s. Raise the memory_limit setting.', 'failsafe' ),
 				size_format( $memory_needed ),
-				(int) FAILSAFE_LIMIT_SAFETY_FACTOR,
 				size_format( $memory_limit )
 			)
 		);
 	}
 
+	// The archive holds the site files too, and on most sites they are the larger half.
+	$payload     = $database_bytes + (int) failsafe_estimate_site_bytes();
 	$directory   = failsafe_backup_dir();
 	$disk_free   = failsafe_available_disk_bytes( $directory );
-	$disk_needed = failsafe_required_disk_bytes( $database_bytes );
+	$disk_needed = failsafe_required_disk_bytes( $payload );
 
 	if ( 0 <= $disk_free && $disk_needed > $disk_free ) {
 		return new WP_Error(
@@ -274,7 +337,7 @@ function failsafe_check_limits() {
 	}
 
 	$time_limit = failsafe_parse_size( ini_get( 'max_execution_time' ) );
-	$estimated  = failsafe_estimate_backup_seconds( $database_bytes );
+	$estimated  = failsafe_estimate_backup_seconds( $payload );
 
 	if ( 0 < $time_limit && $estimated > $time_limit ) {
 		return new WP_Error(

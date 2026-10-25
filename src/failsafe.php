@@ -39,6 +39,7 @@ require_once FAILSAFE_DIR . '/includes/limits.php';
 require_once FAILSAFE_DIR . '/includes/notifications.php';
 require_once FAILSAFE_DIR . '/includes/restore.php';
 require_once FAILSAFE_DIR . '/includes/cron.php';
+require_once FAILSAFE_DIR . '/includes/dump.php';
 require_once FAILSAFE_DIR . '/admin/setup.php';
 require_once FAILSAFE_DIR . '/admin/format.php';
 require_once FAILSAFE_DIR . '/admin/partials.php';

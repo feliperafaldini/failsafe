@@ -116,13 +116,7 @@ function failsafe_create_backup( $base = '' ) {
 		return $limits;
 	}
 
-	$sql = failsafe_build_sql_dump();
-
-	if ( is_wp_error( $sql ) ) {
-		return $sql;
-	}
-
-	$bytes = failsafe_write_file_atomic( $sql_path, $sql );
+	$bytes = failsafe_write_sql_dump( $sql_path );
 
 	if ( is_wp_error( $bytes ) ) {
 		return $bytes;

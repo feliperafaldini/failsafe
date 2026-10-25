@@ -85,7 +85,7 @@ The **Backups to keep** setting defaults to 5 and accepts 0 to 50. Zero keeps ev
 
 Before writing any file, the plugin estimates the database size from `information_schema` (cached for 10 minutes) and checks three limits:
 
-* Memory: about three times the database size against the PHP `memory_limit`.
+* Memory: a fixed floor of 64 MB. The dump is streamed to disk in chunks, so the requirement does not grow with the database.
 * Disk: about twice the database size plus 16 MB against the free space of the backup directory.
 * Time: about five seconds plus one second per 2 MB against `max_execution_time`.
 
@@ -191,8 +191,8 @@ No screenshot images are bundled with version 0.2.0. The entries below describe 
 
 These limits are known and accepted for version 0.2.0:
 
-* **Database size.** The largest database tested is about 2 MB with 12 tables. The SQL dump is built as a single string in memory, so larger databases are untested and may exhaust the PHP `memory_limit` (128 MB in the test environment). The pre-flight check stops a run it expects to exceed the memory limit, but a database in the tens of megabytes is likely to fail.
-* **Request time.** Manual and scheduled backups run inside a request. The local sample site takes about 9 seconds. Under Apache the default limit is 30 seconds; larger sites will hit the timeout. There is no background processing.
+* **Database size.** Tested with a table of 150,000 rows: a 37.8 MB dump and a 42 MB archive in 8 seconds, with a peak of 42 MB of memory under a 128 MB limit. The dump is written to disk in chunks of 500 rows and the restore reads it back in 64 KB blocks, so memory stays flat. The remaining limit is time, not memory (see below).
+* **Request time.** Manual and scheduled backups run inside a request. A small site takes about 9 seconds; the 150,000-row test took 8 seconds to back up and 19 seconds to restore. Under Apache the default limit is 30 seconds, so a database several times larger than the test will hit the timeout. There is no background processing yet.
 * **WP-Cron depends on traffic.** Automatic backups only start when WordPress receives a request or when `wp-cron.php` is called by a system cron job. A quiet site can run a backup late.
 * **Apache dependency.** Directory protection relies on `.htaccess`. On nginx or another server that ignores `.htaccess`, you must add your own rule or move the directory outside the web root with `FAILSAFE_BACKUP_DIR`.
 * **Multisite.** Not supported. See the FAQ above.

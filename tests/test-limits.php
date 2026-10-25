@@ -73,28 +73,23 @@ failsafe_assert( 0 === failsafe_parse_size( 'lots' ), 'unparsable value is treat
 
 echo "\nfailsafe_required_memory_bytes()\n";
 
-failsafe_assert( 3 === FAILSAFE_LIMIT_SAFETY_FACTOR, 'default safety factor is 3' );
+failsafe_assert( 64 * $one_mb === FAILSAFE_MIN_MEMORY_BYTES, 'the memory floor is 64 MB' );
 failsafe_assert(
-	3 * $one_mb === failsafe_required_memory_bytes( $one_mb ),
-	'a 1 MB database needs 3 MB of memory'
+	64 * $one_mb === failsafe_required_memory_bytes( $one_mb ),
+	'the requirement is the streaming floor, not a multiple of the database'
 );
 failsafe_assert(
-	300 * $one_mb === failsafe_required_memory_bytes( 100 * $one_mb ),
-	'the factor scales with the database size'
+	64 * $one_mb === failsafe_required_memory_bytes( 4096 * $one_mb ),
+	'a 4 GB database still needs only the floor, because the dump is streamed'
 );
-failsafe_assert( 0 === failsafe_required_memory_bytes( 0 ), 'an empty database needs no memory' );
-failsafe_assert( 3 === failsafe_required_memory_bytes( 1 ), 'the result is rounded up, never down' );
+failsafe_assert( 64 * $one_mb === failsafe_required_memory_bytes( 0 ), 'an empty database needs the same floor' );
 failsafe_assert(
-	2 * $one_mb === failsafe_required_memory_bytes( $one_mb, 2 ),
-	'a custom factor is honoured'
-);
-failsafe_assert(
-	$one_mb === failsafe_required_memory_bytes( $one_mb, 0.5 ),
-	'a factor below one is clamped to one'
+	64 * $one_mb === failsafe_required_memory_bytes( $one_mb, 10 ),
+	'the old factor argument is ignored'
 );
 failsafe_assert(
-	0 === failsafe_required_memory_bytes( -10 ),
-	'a negative size is treated as zero'
+	64 * $one_mb === failsafe_required_memory_bytes( -10 ),
+	'a negative size is ignored'
 );
 
 echo "\nfailsafe_required_disk_bytes()\n";

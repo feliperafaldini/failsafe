@@ -12,7 +12,7 @@ O que funciona hoje:
 - Conjuntos datados no formato `failsafe-YYYYMMDD-HHMMSS`, com `.sql` e `.zip`; um backup novo não sobrescreve o anterior. Colisões no mesmo segundo recebem sufixo `-2` a `-9`.
 - Dump de todas as tabelas do banco atual, com `DROP TABLE IF EXISTS`, `CREATE TABLE` e `INSERT` por linha, snapshot consistente, `FOREIGN_KEY_CHECKS = 0`, `COMMIT` no fim e checagem de `$wpdb->last_error` a cada consulta.
 - ZIP com o dump na raiz e todos os arquivos do site, exceto o diretório de backups, `wp-content/cache` e `wp-content/upgrade`.
-- Escrita atômica do dump (`.part` e depois `rename`); ZIP parcial é apagado para não aparecer como backup válido.
+- Dump em streaming, com memória constante; escrita atômica via `.part` e `WP_Filesystem`; ZIP parcial é apagado para não aparecer como backup válido.
 - Página **Failsafe** com tabela de data, arquivos, tamanho e ações, incluindo download do `.zip` e do `.sql` por `admin-post.php` com nonce e exclusão em POST com nonce por conjunto.
 - Retenção de backups completos, com padrão 5, faixa de 0 a 50 e 0 para manter todos. Conjuntos incompletos ficam até a exclusão manual.
 - Widget do painel com o último backup, a quantidade de conjuntos, o tamanho total em disco e o link para a lista.
@@ -42,7 +42,8 @@ O que ainda **não** existe: suporte a multisite, restauração dos arquivos do 
 - `src/` — código do plugin (é o que sobe para o diretório oficial).
   - `src/failsafe.php` — cabeçalho, constantes (`FAILSAFE_VERSION`, `FAILSAFE_BACKUP_DIR`, `FAILSAFE_RETENTION_DEFAULT`) e mapa de `require_once`.
   - `src/includes/storage.php` — nomes, caminhos, listagem, exclusão, retenção e escrita atômica.
-  - `src/includes/limits.php` — estimativa do banco e checagens de memória, disco e tempo.
+  - `src/includes/limits.php` — estimativas de banco e de arquivos do site, e checagens de memória, disco e tempo.
+  - `src/includes/dump.php` — escritor do dump em streaming.
   - `src/includes/notifications.php` — montagem e envio do e-mail de status.
   - `src/includes/restore.php` — parser de SQL, execução do dump, extração validada do ZIP e limpeza do diretório temporário.
   - `src/includes/cron.php` — evento agendado, frequências, lock, execução e registro do último resultado.

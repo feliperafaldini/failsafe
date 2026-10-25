@@ -26,8 +26,12 @@ Nada disso tem versão ou data definida.
 - Widget do painel com o último backup, a quantidade de conjuntos e o tamanho total em disco, além do botão **Backup agora**.
 - Nomes datados no formato `failsafe-YYYYMMDD-HHMMSS`, com sufixo numérico quando dois backups começam no mesmo segundo.
 - Retenção de backups completos, com padrão 5, limite configurável de 0 a 50 e 0 para manter todos.
-- Escrita atômica do dump: arquivo `.part` seguido de `rename`; um ZIP com falha é apagado para não parecer um backup válido.
+- Dump gravado em streaming, em blocos de 500 linhas por consulta e lotes de 100 `INSERT`, mantendo a memória constante independentemente do tamanho do banco.
+- Escrita atômica do dump: arquivo `.part` movido para o destino pelo `WP_Filesystem`; um ZIP com falha é apagado para não parecer um backup válido.
 - Restauração do banco em **Ferramentas > Failsafe Restore**, com confirmação digitada do nome do backup.
+- Restauração lê o dump do disco em blocos de 64 KB e executa cada instrução assim que ela termina, sem carregar o arquivo inteiro.
+- Restauração limitada a instruções que um dump precisa (`SET`, `DROP/CREATE/ALTER TABLE`, `INSERT`, `REPLACE`, `LOCK/UNLOCK TABLES`, controle de transação); qualquer outro comando aborta a operação.
+- Importação em modo de commit único por execução: um dump de 38 MB caiu de 5min04s para cerca de 19s.
 - Backup de segurança completo antes da restauração; se ele falhar, a restauração é abortada.
 - Extração do ZIP para um diretório temporário fora do webroot, com rejeição de caminhos absolutos, referências `..`, bytes nulos e links simbólicos, e limite de 50.000 entradas.
 - Execução do dump com verificação de erro por instrução; falhas em comandos `SET` são registradas e ignoradas, e as demais interrompem a restauração.
@@ -36,7 +40,8 @@ Nada disso tem versão ou data definida.
 - Lock de execução para backups agendados e manuais, com transiente de apoio e retomada de lock abandonado após 15 minutos.
 - Tela de configurações com o estado do agendamento, a última execução, o último resultado, a próxima execução e o limite de retenção.
 - Avisos na tela de configurações para evento atrasado, evento ausente e `DISABLE_WP_CRON`.
-- Checagem prévia de memória (cerca de 3 vezes o tamanho do banco), disco (cerca de 2 vezes o tamanho mais 16 MB) e tempo de execução (cerca de 5 segundos mais 1 segundo por 2 MB).
+- Checagem prévia de memória (piso fixo de 64 MB, já que o dump é streaming), disco (cerca de 2 vezes o banco mais os arquivos do site, mais 16 MB) e tempo de execução (cerca de 5 segundos mais 1 segundo por 2 MB).
+- Cache de 1 hora para o tamanho total dos arquivos do site, usado no cálculo de disco.
 - Cache de 10 minutos para o tamanho estimado do banco, consultado em `information_schema`.
 - E-mail de status para backups manuais: falha sempre que o endereço do administrador é válido, sucesso apenas com a opção `failsafe_email_on_success` ligada; destinatário configurável pelo filtro `failsafe_status_email_recipient`.
 - Ação `failsafe_restore_completed` disparada após uma restauração bem-sucedida.

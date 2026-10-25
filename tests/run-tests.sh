@@ -42,6 +42,7 @@ docker exec "$WP" rm -rf "$TESTS_REMOTE"
 docker cp "$ROOT/tests" "$WP:$TESTS_REMOTE" >/dev/null
 
 docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-dump.php" || FAILED=1
+docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-stream.php" || FAILED=1
 docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-zip.php" || FAILED=1
 docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-storage.php" || FAILED=1
 docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-limits.php" || FAILED=1
