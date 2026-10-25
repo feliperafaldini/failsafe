@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Failsafe Backup
  * Description:       Creates a backup of the WordPress database and files as a single ZIP archive.
- * Version:           0.2.0-dev
+ * Version:           0.2.0
  * Requires at least: 6.2
  * Requires PHP:      8.0
  * Author:            Felipe Albino
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'FAILSAFE_VERSION' ) ) {
-	define( 'FAILSAFE_VERSION', '0.2.0-dev' );
+	define( 'FAILSAFE_VERSION', '0.2.0' );
 }
 
 if ( ! defined( 'FAILSAFE_DIR' ) ) {
