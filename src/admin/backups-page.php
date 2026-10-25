@@ -72,6 +72,24 @@ function failsafe_render_notices() {
 		'busy'          => array( 'warning', __( 'Another backup is already running. Wait for it to finish and try again.', 'failsafe' ) ),
 	);
 
+	// Known failures explain themselves; anything else falls back to the generic text.
+	$error_code = isset( $_GET['failsafe_error'] ) ? sanitize_key( wp_unslash( $_GET['failsafe_error'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only error code; it changes no state.
+
+	$error_messages = array(
+		'failsafe_limit_memory'  => __( 'The backup was not created: the database is too large for the available PHP memory. Raise memory_limit or back up from a server with more memory.', 'failsafe' ),
+		'failsafe_limit_disk'    => __( 'The backup was not created: there is not enough free disk space for the archive.', 'failsafe' ),
+		'failsafe_limit_time'    => __( 'The backup was not created: the expected run time exceeds the PHP execution limit. Raise max_execution_time or run the backup from WP-Cron.', 'failsafe' ),
+		'failsafe_no_ziparchive' => __( 'The backup was not created: the PHP zip extension is not available on this server.', 'failsafe' ),
+		'failsafe_fs_unavailable' => __( 'The backup was not created: WordPress cannot write to the backup directory.', 'failsafe' ),
+		'failsafe_write_failed'  => __( 'The backup was not created: the database dump could not be written to disk.', 'failsafe' ),
+		'failsafe_zip_partial'   => __( 'The archive was written but some files could not be added. Check the site log for the list.', 'failsafe' ),
+		'failsafe_no_tables'     => __( 'The backup was not created: no database tables were found.', 'failsafe' ),
+	);
+
+	if ( 'error' === $notice && isset( $error_messages[ $error_code ] ) ) {
+		$messages['error'][1] = $error_messages[ $error_code ];
+	}
+
 	if ( ! isset( $messages[ $notice ] ) ) {
 		return;
 	}

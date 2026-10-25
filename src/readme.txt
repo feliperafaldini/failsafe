@@ -107,7 +107,7 @@ Deactivation removes the scheduled event and any run lock; the backups are left 
 
 == Installation ==
 
-1. Upload the `failsafe` directory to `/wp-content/plugins/`, or install the ZIP package through **Plugins > Add New > Upload Plugin**.
+1. Upload the `failsafe` directory to `/wp-content/plugins/`, or install `failsafe-<version>.zip` through **Plugins > Add New > Upload Plugin**. The `failsafe.zip` archive, with the plugin files at its root, is meant for SVN trunk and is not the file the upload screen expects.
 2. Activate the plugin on the **Plugins** screen. Activation creates and protects `wp-content/failsafe-backups/` and schedules the first automatic backup.
 3. Open the **Dashboard** or the **Failsafe** menu to create a backup. The **Backups** screen lists, downloads and deletes backup sets.
 4. Open **Settings > Failsafe Backup** to enable or disable automatic backups, choose the frequency and set the retention limit.

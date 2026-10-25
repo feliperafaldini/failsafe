@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-25T02:29:26+00:00\n"
+"POT-Creation-Date: 2026-10-25T02:37:42+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: failsafe\n"
@@ -33,41 +33,41 @@ msgstr ""
 msgid "Felipe Albino"
 msgstr ""
 
-#: admin/actions.php:76
+#: admin/actions.php:95
 #: includes/storage.php:71
 #: includes/storage.php:152
 msgid "Invalid backup name."
 msgstr ""
 
-#: admin/actions.php:146
+#: admin/actions.php:165
 msgid "Could not read the current time."
 msgstr ""
 
-#: admin/actions.php:165
+#: admin/actions.php:184
 msgid "Could not find an unused backup name for this second. Try again in a moment."
 msgstr ""
 
-#: admin/actions.php:202
+#: admin/actions.php:223
 msgid "No tables found in the database."
 msgstr ""
 
-#: admin/actions.php:309
-#: includes/restore.php:312
+#: admin/actions.php:334
+#: includes/restore.php:319
 msgid "The ZipArchive extension is not available."
 msgstr ""
 
 #. translators: %d: ZipArchive error code.
-#: admin/actions.php:320
+#: admin/actions.php:345
 #, php-format
 msgid "Could not open the archive (error %d)."
 msgstr ""
 
-#: admin/actions.php:363
+#: admin/actions.php:388
 msgid "Could not finish the archive."
 msgstr ""
 
 #. translators: %d: number of files that could not be added.
-#: admin/actions.php:371
+#: admin/actions.php:396
 #, php-format
 msgid "The archive was written but %d files could not be added."
 msgstr ""
@@ -109,34 +109,70 @@ msgstr ""
 msgid "The backup could not be created. Check the site log for details."
 msgstr ""
 
-#: admin/backups-page.php:96
+#: admin/backups-page.php:72
+msgid "Another backup is already running. Wait for it to finish and try again."
+msgstr ""
+
+#: admin/backups-page.php:79
+msgid "The backup was not created: the database is too large for the available PHP memory. Raise memory_limit or back up from a server with more memory."
+msgstr ""
+
+#: admin/backups-page.php:80
+msgid "The backup was not created: there is not enough free disk space for the archive."
+msgstr ""
+
+#: admin/backups-page.php:81
+msgid "The backup was not created: the expected run time exceeds the PHP execution limit. Raise max_execution_time or run the backup from WP-Cron."
+msgstr ""
+
+#: admin/backups-page.php:82
+msgid "The backup was not created: the PHP zip extension is not available on this server."
+msgstr ""
+
+#: admin/backups-page.php:83
+msgid "The backup was not created: WordPress cannot write to the backup directory."
+msgstr ""
+
+#: admin/backups-page.php:84
+msgid "The backup was not created: the database dump could not be written to disk."
+msgstr ""
+
+#: admin/backups-page.php:85
+msgid "The archive was written but some files could not be added. Check the site log for the list."
+msgstr ""
+
+#: admin/backups-page.php:86
+msgid "The backup was not created: no database tables were found."
+msgstr ""
+
+#: admin/backups-page.php:115
 #: admin/restore.php:262
 msgid "Date"
 msgstr ""
 
-#: admin/backups-page.php:97
+#: admin/backups-page.php:116
 msgid "Files"
 msgstr ""
 
-#: admin/backups-page.php:98
+#: admin/backups-page.php:117
 #: admin/restore.php:263
 msgid "Size"
 msgstr ""
 
-#: admin/backups-page.php:99
+#: admin/backups-page.php:118
 msgid "Actions"
 msgstr ""
 
-#: admin/backups-page.php:117
+#: admin/backups-page.php:136
 msgid "Incomplete"
 msgstr ""
 
-#: admin/backups-page.php:118
+#: admin/backups-page.php:137
 msgid "One file of this set is missing. It is kept until you delete it."
 msgstr ""
 
 #. translators: 1: number of backups, 2: total size on disk.
-#: admin/backups-page.php:150
+#: admin/backups-page.php:169
 #: admin/dashboard.php:66
 #, php-format
 msgid "%1$s backup, %2$s on disk."
@@ -559,105 +595,105 @@ msgstr ""
 msgid "Check the site log for more details."
 msgstr ""
 
-#: includes/restore.php:186
+#: includes/restore.php:191
 msgid "The dump does not contain any SQL statement."
 msgstr ""
 
-#: includes/restore.php:202
+#: includes/restore.php:209
 msgid "unknown database error"
 msgstr ""
 
 #. translators: 1: statement number, 2: total number of statements, 3: database error message, 4: truncated SQL command.
-#: includes/restore.php:220
+#: includes/restore.php:227
 #, php-format
 msgid "Restore stopped at statement %1$d of %2$d: %3$s. Command: %4$s"
 msgstr ""
 
-#: includes/restore.php:279
+#: includes/restore.php:286
 msgid "The backup routine is not available, so the restore was aborted."
 msgstr ""
 
 #. translators: %s: database or filesystem error message.
-#: includes/restore.php:290
+#: includes/restore.php:297
 #, php-format
 msgid "The safety backup could not be created, so the restore was aborted: %s"
 msgstr ""
 
 #. translators: %s: archive path.
-#: includes/restore.php:320
+#: includes/restore.php:327
 #, php-format
 msgid "The backup archive %s cannot be read."
 msgstr ""
 
 #. translators: %s: directory path.
-#: includes/restore.php:335
+#: includes/restore.php:342
 #, php-format
 msgid "Could not create the temporary directory %s."
 msgstr ""
 
-#: includes/restore.php:351
+#: includes/restore.php:359
 msgid "The extraction directory must live outside the WordPress installation."
 msgstr ""
 
 #. translators: %d: ZipArchive error code.
-#: includes/restore.php:365
+#: includes/restore.php:373
 #, php-format
 msgid "Could not open the backup archive (error %d)."
 msgstr ""
 
-#: includes/restore.php:375
+#: includes/restore.php:383
 msgid "The backup archive is empty."
 msgstr ""
 
 #. translators: 1: number of entries, 2: maximum number of entries.
-#: includes/restore.php:389
+#: includes/restore.php:397
 #, php-format
 msgid "The archive has %1$d entries and exceeds the limit of %2$d."
 msgstr ""
 
-#: includes/restore.php:404
-#: includes/restore.php:449
+#: includes/restore.php:412
+#: includes/restore.php:457
 msgid "An archive entry could not be read."
 msgstr ""
 
 #. translators: 1: archive entry name, 2: rejection reason.
-#: includes/restore.php:418
+#: includes/restore.php:426
 #, php-format
 msgid "The archive entry %1$s was rejected: %2$s"
 msgstr ""
 
 #. translators: %s: archive entry name.
-#: includes/restore.php:434
+#: includes/restore.php:442
 #, php-format
 msgid "The archive entry %s is a symbolic link, which is not allowed."
 msgstr ""
 
 #. translators: %s: directory path.
-#: includes/restore.php:464
-#: includes/restore.php:484
+#: includes/restore.php:472
+#: includes/restore.php:492
 #, php-format
 msgid "Could not create the extracted directory %s."
 msgstr ""
 
 #. translators: %s: archive entry name.
-#: includes/restore.php:499
+#: includes/restore.php:507
 #, php-format
 msgid "Could not extract the archive entry %s."
 msgstr ""
 
-#: includes/restore.php:537
+#: includes/restore.php:545
 msgid "the entry name is empty or contains a null byte."
 msgstr ""
 
-#: includes/restore.php:546
+#: includes/restore.php:554
 msgid "absolute paths are not allowed."
 msgstr ""
 
-#: includes/restore.php:553
+#: includes/restore.php:561
 msgid "absolute Windows paths are not allowed."
 msgstr ""
 
-#: includes/restore.php:561
+#: includes/restore.php:569
 msgid "parent directory references are not allowed."
 msgstr ""
 
@@ -666,6 +702,7 @@ msgid "Backup not found."
 msgstr ""
 
 #: includes/storage.php:180
+#: includes/storage.php:314
 msgid "The filesystem is not writable by WordPress."
 msgstr ""
 
@@ -682,7 +719,7 @@ msgid "Could not write %s."
 msgstr ""
 
 #. translators: %s: file path.
-#: includes/storage.php:314
+#: includes/storage.php:325
 #, php-format
 msgid "Could not move %s into place."
 msgstr ""
