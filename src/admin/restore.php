@@ -123,14 +123,7 @@ function failsafe_handle_restore_backup() {
 		);
 	}
 
-	$sql = file_get_contents( $dump_path );
-
-	if ( false === $sql || '' === trim( $sql ) ) {
-		failsafe_remove_temp_directory( $extracted );
-		failsafe_redirect_restore_notice( 'error', __( 'The database dump is empty. Nothing was restored.', 'failsafe' ) );
-	}
-
-	$restored = failsafe_restore_database( $sql );
+	$restored = failsafe_restore_database_from_file( $dump_path );
 
 	failsafe_remove_temp_directory( $extracted );
 

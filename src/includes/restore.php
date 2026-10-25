@@ -21,6 +21,387 @@ if ( ! defined( 'FAILSAFE_RESTORE_MAX_ENTRIES' ) ) {
 	define( 'FAILSAFE_RESTORE_MAX_ENTRIES', 50000 );
 }
 
+if ( ! defined( 'FAILSAFE_RESTORE_READ_CHUNK' ) ) {
+	define( 'FAILSAFE_RESTORE_READ_CHUNK', 65536 );
+}
+
+/**
+ * Incremental SQL statement parser.
+ *
+ * Implements the same state machine as failsafe_split_sql_statements() but
+ * consumes the dump in pieces, so the whole file never has to be in memory.
+ * Only the statement being parsed and a short look-ahead tail are kept.
+ */
+final class Failsafe_Restore_SQL_Parser {
+
+	/**
+	 * Current statement delimiter.
+	 *
+	 * @var string
+	 */
+	private $delimiter = ';';
+
+	/**
+	 * Input received but not parsed yet.
+	 *
+	 * @var string
+	 */
+	private $pending = '';
+
+	/**
+	 * SQL collected for the statement being parsed.
+	 *
+	 * @var string
+	 */
+	private $statement = '';
+
+	/**
+	 * Whether the current statement has any non-whitespace content.
+	 *
+	 * @var bool
+	 */
+	private $has_content = false;
+
+	/**
+	 * Quote state: normal, single, double or backtick.
+	 *
+	 * @var string
+	 */
+	private $state = 'normal';
+
+	/**
+	 * Whether the byte order mark check already ran.
+	 *
+	 * @var bool
+	 */
+	private $started = false;
+
+	/**
+	 * Statements completed by the last call.
+	 *
+	 * @var string[]
+	 */
+	private $completed = array();
+
+	/**
+	 * Feeds one chunk and returns every statement completed by it.
+	 *
+	 * @param string $chunk Raw bytes read from the dump.
+	 * @return string[]
+	 */
+	public function push( string $chunk ): array {
+		$this->completed = array();
+
+		if ( ! $this->started ) {
+			$this->pending .= $chunk;
+
+			// The BOM is three bytes; wait until it can be checked.
+			if ( strlen( $this->pending ) < 3 ) {
+				return array();
+			}
+
+			$this->started = true;
+			$this->strip_byte_order_mark();
+		} else {
+			$this->pending .= $chunk;
+		}
+
+		$this->parse( false );
+
+		return $this->completed;
+	}
+
+	/**
+	 * Parses the remaining bytes and returns the final statements.
+	 *
+	 * @return string[]
+	 */
+	public function finish(): array {
+		$this->completed = array();
+
+		if ( ! $this->started ) {
+			$this->started = true;
+			$this->strip_byte_order_mark();
+		}
+
+		$this->parse( true );
+
+		if ( $this->has_content ) {
+			$this->emit();
+		}
+
+		$this->pending = '';
+
+		return $this->completed;
+	}
+
+	/**
+	 * Removes a UTF-8 byte order mark from the start of the dump.
+	 *
+	 * @return void
+	 */
+	private function strip_byte_order_mark() {
+		if ( str_starts_with( $this->pending, "\xEF\xBB\xBF" ) ) {
+			$this->pending = substr( $this->pending, 3 );
+		}
+	}
+
+	/**
+	 * Stores the statement being parsed, when it has content.
+	 *
+	 * @return void
+	 */
+	private function emit() {
+		$statement = trim( $this->statement );
+
+		if ( $this->has_content && '' !== $statement ) {
+			$this->completed[] = $statement;
+		}
+
+		$this->statement   = '';
+		$this->has_content = false;
+	}
+
+	/**
+	 * Consumes the pending input, stopping at a boundary that needs more bytes.
+	 *
+	 * @param bool $final Whether the input is complete.
+	 * @return void
+	 */
+	private function parse( bool $final ) {
+		$length = strlen( $this->pending );
+		$index  = 0;
+
+		while ( $index < $length ) {
+			if ( 'normal' !== $this->state ) {
+				$char  = $this->pending[ $index ];
+				$quote = 'single' === $this->state ? "'" : ( 'double' === $this->state ? '"' : '`' );
+
+				// Backslash escapes the next character inside quoted strings, never inside identifiers.
+				if ( '\\' === $char && 'backtick' !== $this->state ) {
+					if ( ( $index + 1 ) >= $length ) {
+						if ( ! $final ) {
+							break;
+						}
+
+						$this->statement .= $char;
+						$index++;
+						continue;
+					}
+
+					$this->statement .= $char . $this->pending[ $index + 1 ];
+					$index           += 2;
+					continue;
+				}
+
+				if ( $quote === $char ) {
+					if ( ( $index + 1 ) >= $length && ! $final ) {
+						break;
+					}
+
+					// A doubled quote is an escaped quote and keeps the string open.
+					if ( ( $index + 1 ) < $length && $quote === $this->pending[ $index + 1 ] ) {
+						$this->statement .= $char . $quote;
+						$index           += 2;
+						continue;
+					}
+
+					$this->state = 'normal';
+				}
+
+				$this->statement .= $char;
+				$index++;
+				continue;
+			}
+
+			// Enough bytes for "--", "/*", a quoted escape or the current delimiter.
+			$lookahead = max( 3, strlen( $this->delimiter ) );
+
+			if ( ! $final && ( $length - $index ) < $lookahead ) {
+				break;
+			}
+
+			// A DELIMITER directive is only meaningful at the start of a statement.
+			if ( ! $this->has_content ) {
+				$directive = $this->read_delimiter_directive( $index, $final, $length );
+
+				if ( 'wait' === $directive ) {
+					break;
+				}
+
+				if ( is_array( $directive ) ) {
+					$this->delimiter   = $directive['delimiter'];
+					$this->statement   = '';
+					$this->has_content = false;
+					$index            += $directive['length'];
+					continue;
+				}
+			}
+
+			$char = $this->pending[ $index ];
+			$next = ( $index + 1 ) < $length ? $this->pending[ $index + 1 ] : '';
+
+			// Delimiters may have more than one character after a DELIMITER directive.
+			if ( 0 === substr_compare( $this->pending, $this->delimiter, $index, strlen( $this->delimiter ) ) ) {
+				$this->emit();
+				$index += strlen( $this->delimiter );
+				continue;
+			}
+
+			// Line comments. MySQL requires whitespace after "--", so "a--b" stays valid SQL.
+			$after = ( $index + 2 ) < $length ? $this->pending[ $index + 2 ] : '';
+
+			if ( '-' === $char && '-' === $next && ( '' === $after || 1 === preg_match( '/\s/', $after ) ) ) {
+				$line_end = strpos( $this->pending, "\n", $index );
+
+				if ( false === $line_end && ! $final ) {
+					break;
+				}
+
+				$index            = false === $line_end ? $length : $line_end + 1;
+				$this->statement .= "\n";
+				continue;
+			}
+
+			if ( '#' === $char ) {
+				$line_end = strpos( $this->pending, "\n", $index );
+
+				if ( false === $line_end && ! $final ) {
+					break;
+				}
+
+				$index            = false === $line_end ? $length : $line_end + 1;
+				$this->statement .= "\n";
+				continue;
+			}
+
+			// Block comments. Version comments, marked with "!" after the opener, are executable SQL.
+			if ( '/' === $char && '*' === $next ) {
+				$close = strpos( $this->pending, '*/', $index + 2 );
+
+				if ( false === $close && ! $final ) {
+					break;
+				}
+
+				$comment_end   = false === $close ? $length : $close;
+				$next_index    = false === $close ? $length : $close + 2;
+				$is_executable = ( $index + 2 ) < $comment_end && '!' === $this->pending[ $index + 2 ];
+
+				if ( $is_executable ) {
+					$inner = substr( $this->pending, $index + 3, $comment_end - $index - 3 );
+					$inner = (string) preg_replace( '/^[0-9]{5,6}[ \t]*/', '', $inner );
+
+					if ( '' !== trim( $inner ) ) {
+						$this->statement   .= $inner;
+						$this->has_content = true;
+					}
+				} else {
+					$this->statement .= ' ';
+				}
+
+				$index = $next_index;
+				continue;
+			}
+
+			if ( "'" === $char || '"' === $char || '`' === $char ) {
+				$this->state       = "'" === $char ? 'single' : ( '"' === $char ? 'double' : 'backtick' );
+				$this->statement   .= $char;
+				$this->has_content = true;
+				$index++;
+				continue;
+			}
+
+			$this->statement .= $char;
+
+			if ( ! $this->has_content && ! ctype_space( $char ) ) {
+				$this->has_content = true;
+			}
+
+			$index++;
+		}
+
+		$this->pending = substr( $this->pending, $index );
+	}
+
+	/**
+	 * Reads a DELIMITER directive at the given offset.
+	 *
+	 * @param int  $index Current offset in the pending input.
+	 * @param bool $final Whether the input is complete.
+	 * @param int  $length Number of pending bytes.
+	 * @return array|string|false Directive data, "wait" or false when it is not one.
+	 */
+	private function read_delimiter_directive( int $index, bool $final, int $length ) {
+		$remaining = $length - $index;
+		$keyword   = 'DELIMITER';
+
+		if ( 'D' !== $this->pending[ $index ] && 'd' !== $this->pending[ $index ] ) {
+			return false;
+		}
+
+		if ( $remaining < strlen( $keyword ) ) {
+			if ( 0 === substr_compare( $this->pending, $keyword, $index, $remaining, true ) ) {
+				return $final ? false : 'wait';
+			}
+
+			return false;
+		}
+
+		if ( 0 !== substr_compare( $this->pending, $keyword, $index, strlen( $keyword ), true ) ) {
+			return false;
+		}
+
+		$position = $index + strlen( $keyword );
+
+		if ( $position >= $length ) {
+			return $final ? false : 'wait';
+		}
+
+		$char = $this->pending[ $position ];
+
+		if ( ' ' !== $char && "\t" !== $char ) {
+			return false;
+		}
+
+		while ( $position < $length && ( ' ' === $this->pending[ $position ] || "\t" === $this->pending[ $position ] ) ) {
+			$position++;
+		}
+
+		$token_start = $position;
+
+		while ( $position < $length && ! ctype_space( $this->pending[ $position ] ) ) {
+			$position++;
+		}
+
+		if ( $position === $token_start || ( $position >= $length && ! $final ) ) {
+			// The delimiter token may still arrive in the next chunk.
+			return $final ? false : 'wait';
+		}
+
+		$token = substr( $this->pending, $token_start, $position - $token_start );
+
+		// Whatever follows the delimiter up to the line break is ignored.
+		while ( $position < $length && "\r" !== $this->pending[ $position ] && "\n" !== $this->pending[ $position ] ) {
+			$position++;
+		}
+
+		if ( $position >= $length ) {
+			if ( ! $final ) {
+				return 'wait';
+			}
+		} elseif ( "\r" === $this->pending[ $position ] && ( $position + 1 ) < $length && "\n" === $this->pending[ $position + 1 ] ) {
+			$position += 2;
+		} else {
+			$position++;
+		}
+
+		return array(
+			'delimiter' => $token,
+			'length'    => $position - $index,
+		);
+	}
+}
+
 /**
  * Splits a SQL dump into individual statements.
  *
@@ -32,136 +413,11 @@ if ( ! defined( 'FAILSAFE_RESTORE_MAX_ENTRIES' ) ) {
  * @return string[]
  */
 function failsafe_split_sql_statements( string $sql ): array {
-	// A UTF-8 byte order mark would otherwise be glued to the first keyword.
-	if ( str_starts_with( $sql, "\xEF\xBB\xBF" ) ) {
-		$sql = substr( $sql, 3 );
-	}
+	$parser     = new Failsafe_Restore_SQL_Parser();
+	$statements = $parser->push( $sql );
 
-	$statements  = array();
-	$length      = strlen( $sql );
-	$delimiter   = ';';
-	$buffer      = '';
-	$has_content = false;
-	$state       = 'normal';
-	$index       = 0;
-
-	while ( $index < $length ) {
-		if ( 'normal' !== $state ) {
-			$char  = $sql[ $index ];
-			$quote = 'single' === $state ? "'" : ( 'double' === $state ? '"' : '`' );
-
-			// Backslash escapes the next character inside quoted strings, never inside identifiers.
-			if ( '\\' === $char && 'backtick' !== $state && ( $index + 1 ) < $length ) {
-				$buffer .= $char . $sql[ $index + 1 ];
-				$index  += 2;
-				continue;
-			}
-
-			if ( $quote === $char ) {
-				// A doubled quote is an escaped quote and keeps the string open.
-				if ( ( $index + 1 ) < $length && $quote === $sql[ $index + 1 ] ) {
-					$buffer .= $char . $quote;
-					$index  += 2;
-					continue;
-				}
-
-				$state = 'normal';
-			}
-
-			$buffer .= $char;
-			$index++;
-
-			continue;
-		}
-
-		$char = $sql[ $index ];
-		$next = $sql[ $index + 1 ] ?? '';
-
-		// A DELIMITER directive is only meaningful at the start of a statement.
-		if ( ! $has_content && preg_match( '/\GDELIMITER[ \t]+(\S+)[^\r\n]*(?:\r\n|\r|\n|$)/i', $sql, $matches, 0, $index ) ) {
-			$delimiter = $matches[1];
-			$buffer    = '';
-			$index    += strlen( $matches[0] );
-			continue;
-		}
-
-		// Delimiters may have more than one character after a DELIMITER directive.
-		if ( 0 === substr_compare( $sql, $delimiter, $index, strlen( $delimiter ) ) ) {
-			$statement = trim( $buffer );
-
-			if ( $has_content && '' !== $statement ) {
-				$statements[] = $statement;
-			}
-
-			$buffer      = '';
-			$has_content = false;
-			$index      += strlen( $delimiter );
-			continue;
-		}
-
-		// Line comments. MySQL requires whitespace after "--", so "a--b" stays valid SQL.
-		$after = $sql[ $index + 2 ] ?? '';
-
-		if ( '-' === $char && '-' === $next && ( '' === $after || 1 === preg_match( '/\s/', $after ) ) ) {
-			$line_end = strpos( $sql, "\n", $index );
-			$index    = false === $line_end ? $length : $line_end + 1;
-			$buffer  .= "\n";
-			continue;
-		}
-
-		if ( '#' === $char ) {
-			$line_end = strpos( $sql, "\n", $index );
-			$index    = false === $line_end ? $length : $line_end + 1;
-			$buffer  .= "\n";
-			continue;
-		}
-
-		// Block comments. Version comments, marked with "!" after the opener, are executable SQL.
-		if ( '/' === $char && '*' === $next ) {
-			$close         = strpos( $sql, '*/', $index + 2 );
-			$comment_end   = false === $close ? $length : $close;
-			$next_index    = false === $close ? $length : $close + 2;
-			$is_executable = ( $index + 2 ) < $comment_end && '!' === $sql[ $index + 2 ];
-
-			if ( $is_executable ) {
-				$inner = substr( $sql, $index + 3, $comment_end - $index - 3 );
-				$inner = (string) preg_replace( '/^[0-9]{5,6}[ \t]*/', '', $inner );
-
-				if ( '' !== trim( $inner ) ) {
-					$buffer     .= $inner;
-					$has_content = true;
-				}
-			} else {
-				$buffer .= ' ';
-			}
-
-			$index = $next_index;
-			continue;
-		}
-
-		if ( "'" === $char || '"' === $char || '`' === $char ) {
-			$state       = "'" === $char ? 'single' : ( '"' === $char ? 'double' : 'backtick' );
-			$buffer     .= $char;
-			$has_content = true;
-			$index++;
-			continue;
-		}
-
-		$buffer .= $char;
-
-		if ( ! $has_content && ! ctype_space( $char ) ) {
-			$has_content = true;
-		}
-
-		$index++;
-	}
-
-	if ( $has_content ) {
-		$statement = trim( $buffer );
-
-		if ( '' !== $statement ) {
-			$statements[] = $statement;
-		}
+	foreach ( $parser->finish() as $statement ) {
+		$statements[] = $statement;
 	}
 
 	return $statements;
@@ -173,6 +429,9 @@ function failsafe_split_sql_statements( string $sql ): array {
  * Statements are run in order. A failing data statement aborts the restore with
  * a WP_Error quoting the statement; failing SET statements are only logged, as
  * restricted database users may not be allowed to change some session values.
+ *
+ * The dump is kept in memory here for compatibility. Callers handling a dump
+ * file should use failsafe_restore_database_from_file(), which streams it.
  *
  * The statements are read from the SQL dump inside the validated backup
  * archive, not from user input. They are MySQL DDL and multi-row INSERT
@@ -196,60 +455,202 @@ function failsafe_restore_database( string $sql ) {
 
 	try {
 		foreach ( $statements as $position => $statement ) {
-			$wpdb->last_error = '';
+			$result = failsafe_restore_execute_statement( $statement, (int) $position + 1, $total );
 
-			if ( ! failsafe_restore_allowed_statement( $statement ) ) {
-				return new WP_Error(
-					'failsafe_restore_statement_blocked',
-					sprintf(
-						/* translators: 1: statement number, 2: total number of statements, 3: truncated SQL command. */
-						__( 'Restore stopped at statement %1$d of %2$d: this statement type is not allowed. Command: %3$s', 'failsafe' ),
-						(int) $position + 1,
-						$total,
-						failsafe_restore_statement_excerpt( $statement )
-					)
-				);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-
-			// Statements come from the backup archive, never from user input; preparing them would break DDL.
-			// phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- statements are read from the validated backup archive, not from user input, and cannot be prepared without breaking CREATE TABLE and INSERT.
-			$result = $wpdb->query( $statement );
-
-			if ( false !== $result && '' === $wpdb->last_error ) {
-				continue;
-			}
-
-			$message = '' !== $wpdb->last_error ? $wpdb->last_error : __( 'unknown database error', 'failsafe' );
-
-			if ( failsafe_restore_is_best_effort_statement( $statement ) ) {
-				failsafe_log(
-					sprintf(
-						'restore: ignored error on statement %1$d of %2$d: %3$s',
-						(int) $position + 1,
-						$total,
-						$message
-					)
-				);
-				continue;
-			}
-
-			return new WP_Error(
-				'failsafe_restore_query_failed',
-				sprintf(
-					/* translators: 1: statement number, 2: total number of statements, 3: database error message, 4: truncated SQL command. */
-					__( 'Restore stopped at statement %1$d of %2$d: %3$s. Command: %4$s', 'failsafe' ),
-					(int) $position + 1,
-					$total,
-					$message,
-					failsafe_restore_statement_excerpt( $statement )
-				)
-			);
 		}
 	} finally {
 		$wpdb->suppress_errors( $previous );
 	}
 
 	return true;
+}
+
+/**
+ * Restores a database dump read from a file, without loading it into memory.
+ *
+ * The file is read in chunks of FAILSAFE_RESTORE_READ_CHUNK bytes, filterable
+ * through "failsafe_restore_read_chunk". Every statement is executed as soon as
+ * its delimiter is found, so memory usage follows the largest single
+ * statement, not the size of the dump.
+ *
+ * @param string $path Absolute path of the SQL dump.
+ * @return true|WP_Error True when every statement ran.
+ */
+function failsafe_restore_database_from_file( string $path ) {
+	global $wpdb;
+
+	if ( ! is_file( $path ) || ! is_readable( $path ) ) {
+		return new WP_Error(
+			'failsafe_restore_file_unreadable',
+			sprintf(
+				/* translators: %s: path of the SQL dump. */
+				__( 'The database dump %s cannot be read.', 'failsafe' ),
+				$path
+			)
+		);
+	}
+
+	// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- the dump is streamed because it can be larger than the available memory, which the filesystem API cannot do.
+	$handle = fopen( $path, 'rb' );
+
+	if ( false === $handle ) {
+		return new WP_Error(
+			'failsafe_restore_file_open_failed',
+			sprintf(
+				/* translators: %s: path of the SQL dump. */
+				__( 'Could not open the database dump %s.', 'failsafe' ),
+				$path
+			)
+		);
+	}
+
+	$chunk_size = (int) apply_filters( 'failsafe_restore_read_chunk', FAILSAFE_RESTORE_READ_CHUNK );
+
+	if ( $chunk_size < 1 ) {
+		$chunk_size = FAILSAFE_RESTORE_READ_CHUNK;
+	}
+
+	$parser     = new Failsafe_Restore_SQL_Parser();
+	$position   = 0;
+	$bytes_read = 0;
+	$previous   = $wpdb->suppress_errors( true );
+
+	try {
+		while ( ! feof( $handle ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- see the fopen note above.
+			$chunk = fread( $handle, $chunk_size );
+
+			if ( false === $chunk ) {
+				return new WP_Error(
+					'failsafe_restore_file_read_failed',
+					sprintf(
+						/* translators: 1: path of the SQL dump, 2: number of bytes read before the failure. */
+						__( 'The database dump %1$s could not be read after %2$d bytes.', 'failsafe' ),
+						$path,
+						$bytes_read
+					)
+				);
+			}
+
+			if ( '' === $chunk ) {
+				if ( feof( $handle ) ) {
+					break;
+				}
+
+				// A regular file never returns empty before EOF; avoid a busy loop if it does.
+				break;
+			}
+
+			$bytes_read += strlen( $chunk );
+
+			foreach ( $parser->push( $chunk ) as $statement ) {
+				$position++;
+				$result = failsafe_restore_execute_statement( $statement, $position );
+
+				if ( is_wp_error( $result ) ) {
+					return $result;
+				}
+			}
+		}
+
+		foreach ( $parser->finish() as $statement ) {
+			$position++;
+			$result = failsafe_restore_execute_statement( $statement, $position );
+
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+		}
+
+		if ( 0 === $position ) {
+			return new WP_Error( 'failsafe_restore_empty', __( 'The dump does not contain any SQL statement.', 'failsafe' ) );
+		}
+	} finally {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- see the fopen note above.
+		fclose( $handle );
+		$wpdb->suppress_errors( $previous );
+	}
+
+	return true;
+}
+
+/**
+ * Executes one statement of a restore and turns failures into WP_Error.
+ *
+ * This is the single execution path shared by the in-memory and the streaming
+ * restores, so both keep the same allowlist, error handling and logging.
+ *
+ * @param string   $statement SQL statement.
+ * @param int      $position  One-based position of the statement.
+ * @param int|null $total     Total number of statements, when known.
+ * @return true|WP_Error True when the statement ran or its error was ignored.
+ */
+function failsafe_restore_execute_statement( string $statement, int $position, ?int $total = null ) {
+	global $wpdb;
+
+	$wpdb->last_error = '';
+
+	if ( ! failsafe_restore_allowed_statement( $statement ) ) {
+		$message = null === $total
+			? sprintf(
+				/* translators: 1: statement number, 2: truncated SQL command. */
+				__( 'Restore stopped at statement %1$d: this statement type is not allowed. Command: %2$s', 'failsafe' ),
+				$position,
+				failsafe_restore_statement_excerpt( $statement )
+			)
+			: sprintf(
+				/* translators: 1: statement number, 2: total number of statements, 3: truncated SQL command. */
+				__( 'Restore stopped at statement %1$d of %2$d: this statement type is not allowed. Command: %3$s', 'failsafe' ),
+				$position,
+				$total,
+				failsafe_restore_statement_excerpt( $statement )
+			);
+
+		return new WP_Error( 'failsafe_restore_statement_blocked', $message );
+	}
+
+	// Statements come from the backup archive, never from user input; preparing them would break DDL.
+	// phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- statements are read from the validated backup archive, not from user input, and cannot be prepared without breaking CREATE TABLE and INSERT.
+	$result = $wpdb->query( $statement );
+
+	if ( false !== $result && '' === $wpdb->last_error ) {
+		return true;
+	}
+
+	$error = '' !== $wpdb->last_error ? $wpdb->last_error : __( 'unknown database error', 'failsafe' );
+
+	if ( failsafe_restore_is_best_effort_statement( $statement ) ) {
+		failsafe_log(
+			null === $total
+				? sprintf( 'restore: ignored error on statement %1$d: %2$s', $position, $error )
+				: sprintf( 'restore: ignored error on statement %1$d of %2$d: %3$s', $position, $total, $error )
+		);
+
+		return true;
+	}
+
+	return new WP_Error(
+		'failsafe_restore_query_failed',
+		null === $total
+			? sprintf(
+				/* translators: 1: statement number, 2: database error message, 3: truncated SQL command. */
+				__( 'Restore stopped at statement %1$d: %2$s. Command: %3$s', 'failsafe' ),
+				$position,
+				$error,
+				failsafe_restore_statement_excerpt( $statement )
+			)
+			: sprintf(
+				/* translators: 1: statement number, 2: total number of statements, 3: database error message, 4: truncated SQL command. */
+				__( 'Restore stopped at statement %1$d of %2$d: %3$s. Command: %4$s', 'failsafe' ),
+				$position,
+				$total,
+				$error,
+				failsafe_restore_statement_excerpt( $statement )
+			)
+	);
 }
 
 /**
