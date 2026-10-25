@@ -205,6 +205,14 @@ function failsafe_delete_backup( $base ) {
 		);
 	}
 
+	/**
+	 * Fires after a backup set is deleted.
+	 *
+	 * @param string $base   Backup base name.
+	 * @param array  $backup Files that belonged to the set.
+	 */
+	do_action( 'failsafe_backup_deleted', $base, $backup );
+
 	return true;
 }
 
@@ -261,6 +269,15 @@ function failsafe_apply_retention( $keep_base = '' ) {
 		}
 
 		$deleted[] = $base;
+	}
+
+	if ( $deleted ) {
+		/**
+		 * Fires after retention removed old backup sets.
+		 *
+		 * @param string[] $deleted Base names that were removed.
+		 */
+		do_action( 'failsafe_retention_deleted', $deleted );
 	}
 
 	return $deleted;

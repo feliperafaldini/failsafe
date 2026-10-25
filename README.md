@@ -110,6 +110,34 @@ The second script creates a marker post, runs a backup, deletes the post, restor
 
 The test database is created and dropped by the script itself. Never import a dump into a real database.
 
+## Extending
+
+The plugin exposes lifecycle actions and filters so another plugin can react to a backup or change how it runs.
+
+| Hook | Type | Purpose |
+|---|---|---|
+| `failsafe_backup_started` | action | A run began |
+| `failsafe_backup_completed` | action | Set written; receives the result |
+| `failsafe_backup_failed` | action | Run failed; receives the `WP_Error` |
+| `failsafe_backup_deleted` | action | A set was deleted |
+| `failsafe_retention_deleted` | action | Retention removed old sets |
+| `failsafe_restore_completed` | action | Database restored |
+| `failsafe_backup_dir` | filter | Backup directory |
+| `failsafe_backup_capability` | filter | Capability required |
+| `failsafe_backup_excluded_paths` | filter | Directories left out of the ZIP |
+| `failsafe_dump_tables` | filter | Tables written to the dump |
+| `failsafe_dump_chunk_size` | filter | Rows per dump query |
+| `failsafe_dump_insert_batch` | filter | `INSERT` per batch |
+| `failsafe_required_memory_bytes` | filter | Memory floor |
+| `failsafe_cron_enabled` | filter | Scheduled run on or off |
+| `failsafe_cron_frequencies` | filter | Available schedules |
+| `failsafe_cron_lock_timeout` | filter | Abandoned lock timeout |
+| `failsafe_restore_read_chunk` | filter | Restore read block |
+| `failsafe_restore_max_entries` | filter | ZIP entry limit |
+| `failsafe_status_email_recipient` | filter | Status e-mail recipient |
+
+Writing a remote destination, an alert or a files-restore add-on means hooking `failsafe_backup_completed` and using the set path, never editing the plugin.
+
 ## Known limitations
 
 - **Database size**: the largest measured case has 150,000 rows, a 37.8 MB dump and a 42 MB ZIP, produced in 8 seconds with a 42 MB memory peak under a 128 MB limit. Memory stays flat because the dump is streamed; the remaining limit is time.

@@ -47,6 +47,8 @@ None of these has a version or a date.
 - Ten-minute cache for the estimated database size, read from `information_schema`.
 - Status e-mail for manual backups: failures whenever the administrator address is valid, success only with the `failsafe_email_on_success` option; recipient configurable through the `failsafe_status_email_recipient` filter.
 - `failsafe_restore_completed` action fired after a successful restore.
+- Lifecycle actions `failsafe_backup_started`, `failsafe_backup_completed`, `failsafe_backup_failed`, `failsafe_backup_deleted` and `failsafe_retention_deleted`, so an add-on can react to a run or a deletion without editing the plugin.
+- `failsafe_dump_tables` filter to choose the tables in the dump and `failsafe_backup_excluded_paths` filter to choose the directories left out of the archive; both apply to the size estimates as well.
 - `Requires PHP: 8.0` in the plugin header and in `readme.txt`.
 
 ### Changed

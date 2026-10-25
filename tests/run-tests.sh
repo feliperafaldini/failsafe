@@ -43,6 +43,7 @@ docker cp "$ROOT/tests" "$WP:$TESTS_REMOTE" >/dev/null
 
 docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-dump.php" || FAILED=1
 docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-stream.php" || FAILED=1
+docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-hooks.php" || FAILED=1
 docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-zip.php" || FAILED=1
 docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-storage.php" || FAILED=1
 docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-limits.php" || FAILED=1
@@ -51,9 +52,19 @@ docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-cron.php" || FAILED=1
 docker exec -u www-data "$WP" php "$TESTS_REMOTE/test-settings.php" || FAILED=1
 
 step "Round-trip import"
-SQL_REMOTE=$(docker exec "$WP" sh -c "ls -t $SQL_DIR_REMOTE/*.sql 2>/dev/null | head -1")
+# Newest sets first; retry if a test removed the file between listing and copying.
+SQL_REMOTE=""
+COPIED=0
 
-if [ -n "$SQL_REMOTE" ] && docker cp "$WP:$SQL_REMOTE" "$SQL_LOCAL" 2>/dev/null; then
+for candidate in $(docker exec "$WP" sh -c "ls -t $SQL_DIR_REMOTE/*.sql 2>/dev/null | head -3"); do
+	if docker cp "$WP:$candidate" "$SQL_LOCAL" 2>/dev/null && [ -s "$SQL_LOCAL" ]; then
+		SQL_REMOTE="$candidate"
+		COPIED=1
+		break
+	fi
+done
+
+if [ "$COPIED" -eq 1 ]; then
 	docker exec "$DB" mariadb -uroot -p"$DB_ROOT_PASSWORD" \
 		-e 'DROP DATABASE IF EXISTS teste_ci; CREATE DATABASE teste_ci' >/dev/null 2>&1
 

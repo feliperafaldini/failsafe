@@ -132,6 +132,9 @@ function failsafe_estimate_site_bytes() {
 
 	$root = rtrim( ABSPATH, '/\\' );
 	$skip = array( failsafe_backup_dir(), $root . '/wp-content/cache', $root . '/wp-content/upgrade' );
+
+	/** This filter is documented in admin/actions.php */
+	$skip = (array) apply_filters( 'failsafe_backup_excluded_paths', $skip, $root );
 	$size = 0;
 
 	try {

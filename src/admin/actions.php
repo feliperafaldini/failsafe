@@ -89,6 +89,41 @@ function failsafe_handle_run_backup() {
  * @return array|WP_Error Paths and sizes on success, WP_Error on failure.
  */
 function failsafe_create_backup( $base = '' ) {
+	do_action( 'failsafe_backup_started', $base );
+
+	$result = failsafe_create_backup_now( $base );
+
+	if ( is_wp_error( $result ) ) {
+		/**
+		 * Fires when a backup run fails.
+		 *
+		 * @param WP_Error $error Failure details.
+		 * @param string   $base  Base name requested for the run, empty when generated.
+		 */
+		do_action( 'failsafe_backup_failed', $result, $base );
+	} else {
+		/**
+		 * Fires after a backup set is written to disk.
+		 *
+		 * Extension points for remote destinations, monitoring and cleanup.
+		 *
+		 * Also fires for the safety backup taken before a restore.
+		 *
+		 * @param array $result Base name, paths and sizes of the new set.
+		 */
+		do_action( 'failsafe_backup_completed', $result );
+	}
+
+	return $result;
+}
+
+/**
+ * Writes the backup set. Extensions must hook the public wrapper.
+ *
+ * @param string $base Optional base name; generated when empty.
+ * @return array|WP_Error
+ */
+function failsafe_create_backup_now( $base = '' ) {
 	if ( '' === $base ) {
 		$base = failsafe_generate_backup_base();
 	} elseif ( ! failsafe_is_valid_backup_name( $base ) ) {
@@ -216,6 +251,9 @@ function failsafe_build_sql_dump() {
 	if ( empty( $tables ) ) {
 		return new WP_Error( 'failsafe_no_tables', __( 'No tables found in the database.', 'failsafe' ) );
 	}
+
+	/** This filter is documented in includes/dump.php */
+	$tables = array_values( (array) apply_filters( 'failsafe_dump_tables', $tables ) );
 
 	$charset = preg_replace( '/[^A-Za-z0-9_]/', '', (string) $wpdb->charset );
 	$collate = preg_replace( '/[^A-Za-z0-9_]/', '', (string) $wpdb->collate );
@@ -354,6 +392,14 @@ function failsafe_create_zip( $sql_path, $zip_path ) {
 		$root . '/wp-content/cache',
 		$root . '/wp-content/upgrade',
 	);
+
+	/**
+	 * Filters the directories left out of the archive.
+	 *
+	 * @param string[] $skip Absolute paths to skip.
+	 * @param string   $root Installation root being archived.
+	 */
+	$skip = (array) apply_filters( 'failsafe_backup_excluded_paths', $skip, $root );
 
 	try {
 		$iterator = new RecursiveIteratorIterator(

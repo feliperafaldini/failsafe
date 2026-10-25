@@ -162,6 +162,17 @@ function failsafe_dump_tables() {
 		return new WP_Error( 'failsafe_no_tables', __( 'No tables found in the database.', 'failsafe' ) );
 	}
 
+	/**
+	 * Filters the tables written to the dump.
+	 *
+	 * @param string[] $tables Table names.
+	 */
+	$tables = array_values( (array) apply_filters( 'failsafe_dump_tables', $tables ) );
+
+	if ( empty( $tables ) ) {
+		return new WP_Error( 'failsafe_no_tables', __( 'No tables left to dump.', 'failsafe' ) );
+	}
+
 	return $tables;
 }
 

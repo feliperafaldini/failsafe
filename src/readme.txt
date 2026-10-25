@@ -175,7 +175,17 @@ Yes. Use the `failsafe_backup_capability` filter and return another capability, 
 
 = Does uninstalling delete my backups? =
 
-By default, no. Uninstall removes the retention setting and keeps the backup files. Backups are deleted only when the `failsafe_delete_backups_on_uninstall` option is enabled before uninstalling. There is no setting for this option in the admin screens yet.
+By default, no. Uninstall removes every plugin option and keeps the backup files. Backups are deleted only when the `failsafe_delete_backups_on_uninstall` option is enabled before uninstalling. There is no setting for this option in the admin screens yet.
+
+= Can I extend the plugin? =
+
+Yes. The plugin exposes actions and filters so another plugin can react to a backup or change its behaviour without touching the code.
+
+Actions: `failsafe_backup_started`, `failsafe_backup_completed` (receives the new set), `failsafe_backup_failed` (receives the `WP_Error`), `failsafe_backup_deleted`, `failsafe_retention_deleted` and `failsafe_restore_completed`.
+
+Filters: `failsafe_backup_dir`, `failsafe_backup_capability`, `failsafe_backup_excluded_paths`, `failsafe_dump_tables`, `failsafe_dump_chunk_size`, `failsafe_dump_insert_batch`, `failsafe_required_memory_bytes`, `failsafe_cron_enabled`, `failsafe_cron_frequencies`, `failsafe_cron_lock_timeout`, `failsafe_restore_read_chunk`, `failsafe_restore_max_entries` and `failsafe_status_email_recipient`.
+
+Every hook is documented in the source, next to where it fires.
 
 = Is the archive sensitive? =
 

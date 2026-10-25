@@ -110,6 +110,34 @@ O segundo cria um post marcador, gera um backup, apaga o post, restaura o banco,
 
 O banco de teste é criado e destruído pelo próprio script. Nunca importe um dump num banco real.
 
+## Estender
+
+O plugin expõe ações e filtros para que outro plugin reaja a um backup ou mude o comportamento sem editar o código.
+
+| Hook | Tipo | Para quê |
+|---|---|---|
+| `failsafe_backup_started` | ação | Uma execução começou |
+| `failsafe_backup_completed` | ação | Conjunto gravado; recebe o resultado |
+| `failsafe_backup_failed` | ação | Execução falhou; recebe o `WP_Error` |
+| `failsafe_backup_deleted` | ação | Um conjunto foi apagado |
+| `failsafe_retention_deleted` | ação | A retenção removeu conjuntos |
+| `failsafe_restore_completed` | ação | Banco restaurado |
+| `failsafe_backup_dir` | filtro | Diretório de backups |
+| `failsafe_backup_capability` | filtro | Capability exigida |
+| `failsafe_backup_excluded_paths` | filtro | Diretórios fora do ZIP |
+| `failsafe_dump_tables` | filtro | Tabelas do dump |
+| `failsafe_dump_chunk_size` | filtro | Linhas por consulta |
+| `failsafe_dump_insert_batch` | filtro | `INSERT` por lote |
+| `failsafe_required_memory_bytes` | filtro | Piso de memória |
+| `failsafe_cron_enabled` | filtro | Agendamento ligado |
+| `failsafe_cron_frequencies` | filtro | Frequências disponíveis |
+| `failsafe_cron_lock_timeout` | filtro | Timeout do lock |
+| `failsafe_restore_read_chunk` | filtro | Bloco de leitura no restore |
+| `failsafe_restore_max_entries` | filtro | Limite de entradas do ZIP |
+| `failsafe_status_email_recipient` | filtro | Destinatário do e-mail |
+
+Um add-on de destino remoto, alerta ou restauração de arquivos se pendura em `failsafe_backup_completed` e usa o caminho do conjunto, sem tocar no plugin.
+
 ## Limitações conhecidas
 
 - **Tamanho do banco**: o maior cenário medido tem 150.000 linhas, 37,8 MB de dump e 42 MB de ZIP, gerados em 8 segundos com pico de 42 MB de memória sob limite de 128 MB. A memória é constante porque o dump é gravado em streaming; o limite que resta é tempo.
