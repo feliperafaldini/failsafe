@@ -1,6 +1,6 @@
 <?php
 /**
- * Dashboard widget and admin notices.
+ * Dashboard widget: a summary of the backups.
  *
  * @package Failsafe
  */
@@ -10,7 +10,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 add_action( 'wp_dashboard_setup', 'failsafe_add_dashboard_widgets' );
-add_action( 'admin_notices', 'failsafe_backup_notice' );
 
 /**
  * Registers the dashboard widget for users allowed to run backups.
@@ -30,55 +29,54 @@ function failsafe_add_dashboard_widgets() {
 }
 
 /**
- * Renders the dashboard widget.
+ * Renders the dashboard summary: latest backup, disk usage and links.
  *
  * @return void
  */
 function failsafe_dashboard_widget_render() {
-	?>
-	<p><?php esc_html_e( 'Create a backup of your database and files.', 'failsafe' ); ?></p>
-	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-		<input type="hidden" name="action" value="failsafe_run_backup" />
-		<?php wp_nonce_field( 'failsafe_run_backup', 'failsafe_backup_nonce' ); ?>
-		<button type="submit" class="button button-primary">
-			<?php esc_html_e( 'Backup now', 'failsafe' ); ?>
-		</button>
-	</form>
-	<?php
-}
-
-/**
- * Shows the result of the last backup run on the dashboard.
- *
- * @return void
- */
-function failsafe_backup_notice() {
-	if ( ! isset( $_GET['failsafe_backup'] ) || 'done' !== sanitize_key( wp_unslash( $_GET['failsafe_backup'] ) ) ) {
-		return;
-	}
-
 	if ( ! current_user_can( failsafe_backup_capability() ) ) {
 		return;
 	}
 
-	$screen = get_current_screen();
+	$backups = failsafe_get_backups();
+	$latest  = empty( $backups ) ? null : reset( $backups );
+	$count   = count( $backups );
+	$total   = failsafe_get_backups_total_size();
+	?>
+	<?php if ( null !== $latest ) : ?>
+		<p>
+			<?php
+			printf(
+				/* translators: 1: backup date, 2: backup size. */
+				esc_html__( 'Last backup: %1$s (%2$s).', 'failsafe' ),
+				esc_html( failsafe_format_time( (int) $latest['time'] ) ),
+				esc_html( failsafe_format_size( (int) $latest['size'] ) )
+			);
+			?>
+		</p>
+	<?php else : ?>
+		<p><?php esc_html_e( 'No backups yet.', 'failsafe' ); ?></p>
+	<?php endif; ?>
 
-	if ( ! $screen || 'dashboard' !== $screen->id ) {
-		return;
-	}
+	<p>
+		<?php
+		printf(
+			esc_html(
+				/* translators: 1: number of backups, 2: total size on disk. */
+				_n( '%1$s backup, %2$s on disk.', '%1$s backups, %2$s on disk.', $count, 'failsafe' )
+			),
+			esc_html( number_format_i18n( $count ) ),
+			esc_html( failsafe_format_size( $total ) )
+		);
+		?>
+	</p>
 
-	$sql_bytes = isset( $_GET['failsafe_sql_bytes'] ) ? absint( wp_unslash( $_GET['failsafe_sql_bytes'] ) ) : 0;
-	$zip_bytes = isset( $_GET['failsafe_zip_bytes'] ) ? absint( wp_unslash( $_GET['failsafe_zip_bytes'] ) ) : 0;
+	<p>
+		<a href="<?php echo esc_url( failsafe_backups_page_url() ); ?>">
+			<?php esc_html_e( 'View all backups', 'failsafe' ); ?>
+		</a>
+	</p>
 
-	printf(
-		'<div class="notice notice-success is-dismissible"><p>%s</p></div>',
-		esc_html(
-			sprintf(
-				/* translators: 1: database dump size, 2: archive size. */
-				__( 'Backup created. Database dump: %1$s. Archive: %2$s.', 'failsafe' ),
-				size_format( $sql_bytes, 1 ),
-				size_format( $zip_bytes, 1 )
-			)
-		)
-	);
+	<?php failsafe_render_backup_button(); ?>
+	<?php
 }

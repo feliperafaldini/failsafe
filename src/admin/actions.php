@@ -27,7 +27,7 @@ function failsafe_backup_capability() {
  */
 function failsafe_handle_run_backup() {
 	if ( ! current_user_can( failsafe_backup_capability() ) ) {
-		wp_die( esc_html__( 'You are not allowed to run backups.', 'failsafe' ) );
+		wp_die( '', 403 );
 	}
 
 	check_admin_referer( 'failsafe_run_backup', 'failsafe_backup_nonce' );
@@ -37,21 +37,24 @@ function failsafe_handle_run_backup() {
 	if ( is_wp_error( $result ) ) {
 		failsafe_log( $result->get_error_code() . ': ' . $result->get_error_message() );
 
-		wp_die(
-			esc_html__( 'The backup could not be created. Check the site log for details.', 'failsafe' ),
-			esc_html__( 'Backup failed', 'failsafe' ),
-			array( 'response' => 500 )
+		// Only the error code travels in the URL: messages may hold absolute paths.
+		wp_safe_redirect(
+			failsafe_backups_page_url(
+				array(
+					'failsafe_notice' => 'error',
+					'failsafe_error'  => $result->get_error_code(),
+				)
+			)
 		);
+		exit;
 	}
 
 	wp_safe_redirect(
-		add_query_arg(
+		failsafe_backups_page_url(
 			array(
-				'failsafe_backup'    => 'done',
-				'failsafe_sql_bytes' => (int) $result['sql_bytes'],
-				'failsafe_zip_bytes' => (int) $result['zip_bytes'],
-			),
-			admin_url()
+				'failsafe_notice' => 'created',
+				'failsafe_backup' => $result['base'],
+			)
 		)
 	);
 	exit;
@@ -60,44 +63,116 @@ function failsafe_handle_run_backup() {
 /**
  * Creates the SQL dump and the ZIP archive.
  *
+ * @param string $base Optional base name; generated when empty.
  * @return array|WP_Error Paths and sizes on success, WP_Error on failure.
  */
-function failsafe_create_backup() {
+function failsafe_create_backup( $base = '' ) {
+	if ( '' === $base ) {
+		$base = failsafe_generate_backup_base();
+	} elseif ( ! failsafe_is_valid_backup_name( $base ) ) {
+		return new WP_Error( 'failsafe_invalid_backup', __( 'Invalid backup name.', 'failsafe' ) );
+	}
+
+	if ( is_wp_error( $base ) ) {
+		return $base;
+	}
+
+	$sql_path = failsafe_backup_path( $base, 'sql' );
+	$zip_path = failsafe_backup_path( $base, 'zip' );
+
+	if ( is_wp_error( $sql_path ) ) {
+		return $sql_path;
+	}
+
+	if ( is_wp_error( $zip_path ) ) {
+		return $zip_path;
+	}
+
 	$sql = failsafe_build_sql_dump();
 
 	if ( is_wp_error( $sql ) ) {
 		return $sql;
 	}
 
-	$sql_path = FAILSAFE_BACKUP_DIR . '/failsafe-backup.sql';
-	$bytes    = file_put_contents( $sql_path, $sql );
+	$bytes = failsafe_write_file_atomic( $sql_path, $sql );
 
-	if ( false === $bytes ) {
-		return new WP_Error(
-			'failsafe_write_failed',
-			sprintf(
-				/* translators: %s: file path. */
-				__( 'Could not write the dump to %s.', 'failsafe' ),
-				$sql_path
-			)
-		);
+	if ( is_wp_error( $bytes ) ) {
+		return $bytes;
 	}
 
-	$zip_path = FAILSAFE_BACKUP_DIR . '/failsafe-backup.zip';
-	$zipped   = failsafe_create_zip( $sql_path, $zip_path );
+	$zipped = failsafe_create_zip( $sql_path, $zip_path );
 
 	if ( is_wp_error( $zipped ) ) {
+		// A half-written archive must not look like a good backup in the list.
+		wp_delete_file( $zip_path );
+
 		return $zipped;
 	}
 
 	clearstatcache( true, $zip_path );
 
+	$zip_bytes = (int) filesize( $zip_path );
+
+	// Retention only runs after both files are complete.
+	failsafe_apply_retention( $base );
+
 	return array(
+		'base'      => $base,
 		'sql_path'  => $sql_path,
 		'zip_path'  => $zip_path,
-		'sql_bytes' => $bytes,
-		'zip_bytes' => (int) filesize( $zip_path ),
+		'sql_bytes' => (int) $bytes,
+		'zip_bytes' => $zip_bytes,
 	);
+}
+
+/**
+ * Builds a base name from the site time zone, resolving same-second collisions.
+ *
+ * @return string|WP_Error
+ */
+function failsafe_generate_backup_base() {
+	$timestamp = wp_date( 'Ymd-His' );
+
+	if ( false === $timestamp ) {
+		return new WP_Error( 'failsafe_date_failed', __( 'Could not read the current time.', 'failsafe' ) );
+	}
+
+	$base = 'failsafe-' . $timestamp;
+
+	if ( ! failsafe_backup_base_exists( $base ) ) {
+		return $base;
+	}
+
+	for ( $suffix = 2; $suffix <= 9; $suffix++ ) {
+		$candidate = $base . '-' . $suffix;
+
+		if ( ! failsafe_backup_base_exists( $candidate ) ) {
+			return $candidate;
+		}
+	}
+
+	return new WP_Error(
+		'failsafe_name_exhausted',
+		__( 'Could not find an unused backup name for this second. Try again in a moment.', 'failsafe' )
+	);
+}
+
+/**
+ * Tells whether either file of a backup set already exists.
+ *
+ * @param string $base Backup base name.
+ * @return bool
+ */
+function failsafe_backup_base_exists( $base ) {
+	foreach ( array( 'zip', 'sql' ) as $ext ) {
+		$path = failsafe_backup_path( $base, $ext );
+
+		if ( ! is_wp_error( $path ) && file_exists( $path ) ) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**
@@ -241,7 +316,7 @@ function failsafe_create_zip( $sql_path, $zip_path ) {
 
 	$add_errors = 0;
 
-	if ( ! $zip->addFile( $sql_path, 'failsafe-backup.sql' ) ) {
+	if ( ! $zip->addFile( $sql_path, basename( $sql_path ) ) ) {
 		$add_errors++;
 	}
 
@@ -310,7 +385,7 @@ function failsafe_path_is_excluded( $pathname, array $excluded ) {
 	foreach ( $excluded as $directory ) {
 		$real_dir = realpath( $directory );
 
-		if ( false !== $real_dir && 0 === strncmp( $real, $real_dir . DIRECTORY_SEPARATOR, strlen( $real_dir ) + 1 ) ) {
+		if ( false !== $real_dir && str_starts_with( $real, $real_dir . DIRECTORY_SEPARATOR ) ) {
 			return true;
 		}
 	}
