@@ -29,7 +29,7 @@ step() { printf '\n=== %s ===\n' "$1"; }
 fail() { printf '  FAIL %s\n' "$1"; FAILED=1; }
 
 step "PHP lint"
-for file in "$SRC"/failsafe.php "$SRC"/admin/*.php; do
+for file in "$SRC"/failsafe.php "$SRC"/uninstall.php "$SRC"/admin/*.php "$SRC"/includes/*.php; do
 	if php -l "$file" >/dev/null; then
 		printf '  ok   %s\n' "${file#"$ROOT"/}"
 	else

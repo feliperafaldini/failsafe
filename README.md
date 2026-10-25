@@ -17,7 +17,7 @@ O que funciona hoje:
 - Retenção de backups completos, com padrão 5, faixa de 0 a 50 e 0 para manter todos. Conjuntos incompletos ficam até a exclusão manual.
 - Widget do painel com o último backup, a quantidade de conjuntos, o tamanho total em disco e o link para a lista.
 - Restauração do banco em **Ferramentas > Failsafe Restore**, com confirmação digitada do nome do backup, backup de segurança completo antes da restauração, aviso de que os arquivos do site não são alterados e sem que a rotina de restauração apague o backup usado.
-- Agendamento com as frequências horária, duas vezes ao dia, diária e semanal, lock para impedir duas execuções agendadas simultâneas e retomada de lock abandonado.
+- Agendamento com as frequências horária, duas vezes ao dia, diária e semanal, lock que impede duas execuções simultâneas (agendadas ou manuais) e retomada de lock abandonado.
 - Tela **Configurações > Failsafe Backup** com o estado do agendamento (última execução, resultado, próxima execução), frequência e retenção.
 - Checagem prévia de memória, espaço em disco e tempo de execução antes de iniciar o dump.
 - E-mail de status para backups manuais: falha quando o endereço do administrador é válido, sucesso apenas com a opção `failsafe_email_on_success` ligada.
@@ -59,7 +59,7 @@ O que ainda **não** existe: suporte a multisite, restauração dos arquivos do 
   - `src/admin/partials.php` — botão de backup e ações da tabela.
   - `src/uninstall.php` — limpeza da opção de retenção e, opcionalmente, dos backups.
   - `src/readme.txt` — texto do diretório do WordPress.org.
-- `assets/admin.js` — confirmação das ações destrutivas marcadas com `data-confirm`.
+- `src/assets/admin.js` — confirmação das ações destrutivas marcadas com `data-confirm`.
 - `bin/build.sh` — gera `dist/failsafe.zip` a partir de `src/`; não empacota `assets/`.
 - `tests/` — testes de fumaça, unitários e round-trip de importação. Ficam fora de `src/` para não irem no pacote do plugin.
 - `stubs/` — stubs do WordPress para análise estática. Não fazem parte do pacote.
@@ -83,7 +83,7 @@ Os containers são `failsafe-wordpress-1` e `failsafe-db-1`. As credenciais loca
 ./bin/build.sh
 ```
 
-O script empacota o conteúdo de `src/` em `dist/failsafe.zip`. Como `assets/admin.js` está fora de `src/`, o pacote gerado hoje não inclui o JS de confirmação; veja **Dívida conhecida**.
+O script empacota `src/` em dois arquivos: `dist/failsafe.zip` (arquivos na raiz, para o `trunk/` do SVN) e `dist/failsafe-<versão>.zip` (tudo dentro de `failsafe/`, para o instalador de plugins). `src/assets/admin.js` entra nos dois.
 
 ## Testes
 
@@ -110,19 +110,18 @@ O banco de teste é criado e destruído pelo próprio script. Nunca importe um d
 - **Retenção durante a restauração**: a rotina não apaga o backup usado, mas o backup de segurança também passa pela retenção; um conjunto fora do limite pode ser removido nesse momento.
 - **Objetos de banco**: views, triggers, procedures e events não entram no dump.
 - **Retenção**: só remove conjuntos completos; um conjunto com um arquivo faltando fica até a exclusão manual.
-- **Lock**: serializa apenas execuções agendadas; um backup manual pode rodar ao mesmo tempo que um agendado.
+- **Lock**: uma segunda execução durante um backup em andamento é recusada com aviso, sem fila; é preciso tentar de novo depois.
 - **E-mail**: o e-mail de status é enviado pelo backup manual. Uma falha agendada fica registrada no status e no log, mas não gera e-mail.
 - **Backups da 0.1.0**: os nomes fixos `failsafe-backup.sql` e `failsafe-backup.zip` não são listados nem removidos pela retenção.
 - **Dados sensíveis**: o ZIP contém `wp-config.php` e o dump do banco, com hashes de senha e dados pessoais. Trate o arquivo como confidencial.
 
 ## Dívida conhecida
 
-- O `uninstall.php` remove apenas `failsafe_retention_count` e, quando ligado, `failsafe_delete_backups_on_uninstall` e o diretório de backups. As opções de agendamento, último resultado, e-mail e cache de tamanho permanecem no banco após a desinstalação.
+- O `uninstall.php` remove todas as opções do plugin, o transient do lock e, quando o opt-in está ligado, o diretório de backups.
 - `failsafe_email_on_success` e `failsafe_delete_backups_on_uninstall` não têm campo nas telas; precisam ser definidas por código ou pela tabela de options.
-- `bin/build.sh` empacota apenas `src/`, então `assets/admin.js` fica fora do ZIP publicado e a confirmação de exclusão não chega ao site instalado.
 - A restauração não tem limite de tamanho descompactado, apenas de número de entradas (50.000) e validação de caminhos.
 - `tests/run-tests.sh` faz lint de `src/failsafe.php` e `src/admin/*.php`, mas não dos arquivos em `src/includes/`.
-- Não há scripts de tradução nem `readme.txt` traduzido; o texto oficial é em inglês, como o diretório exige.
+- O texto oficial é em inglês, como o diretório exige; existe `src/languages/failsafe.pot`, mas nenhuma tradução publicada.
 
 ## Roadmap
 

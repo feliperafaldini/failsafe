@@ -71,7 +71,7 @@ The restore screen cannot restore a `.sql` file on its own, and it does not rest
 * Frequencies: hourly, twice daily, daily and weekly.
 * Changing the frequency replaces the existing event; it never creates a second event.
 * The same screen shows the last scheduled run, its result and the next due time, and warns when the event is overdue, missing or when `DISABLE_WP_CRON` is set.
-* A lock prevents two scheduled backups from running at the same time. A lock older than 15 minutes is treated as abandoned and can be taken over.
+* A lock prevents two backups from running at the same time, whether they are scheduled or started by hand. A lock older than 15 minutes is treated as abandoned and can be taken over.
 
 WP-Cron only runs when the site receives traffic. A quiet site can therefore run an automatic backup late. To keep the schedule on time, disable WP-Cron and call `wp-cron.php` from a system cron job.
 
@@ -103,7 +103,7 @@ Users with the `manage_options` capability by default. The capability can be cha
 
 **Uninstall**
 
-Deactivation removes the scheduled event and any run lock; the backups are left untouched. Uninstall removes the retention setting. The backup directory is kept unless the site owner has enabled the `failsafe_delete_backups_on_uninstall` option; when enabled, the directory and that option are removed. The scheduling, status, e-mail and database-size cache options are not removed in this version.
+Deactivation removes the scheduled event and any run lock; the backups are left untouched. Uninstall removes every plugin option and the run lock, so nothing is left in the database. The backup directory is kept unless the site owner has enabled the `failsafe_delete_backups_on_uninstall` option; when enabled, the directory is removed as well.
 
 == Installation ==
 
@@ -181,10 +181,11 @@ Yes. The ZIP contains `wp-config.php` and the database dump, including password 
 
 No screenshot images are bundled with version 0.2.0. The entries below describe the current screens.
 
-1. The **Failsafe Backup** dashboard widget with the latest backup, the count and total size, and the **Backup now** button.
-2. The **Backups** screen with the table of sets, download and delete actions, and the total size on disk.
-3. The **Failsafe Restore** screen under **Tools**, with the warning, the backup table and the typed confirmation field.
-4. The **Failsafe Backup** settings screen with the schedule status, the frequency selector and the retention field.
+1. The **Backups** screen with the table of sets, the download and delete actions, and the total size on disk.
+2. The **Failsafe Restore** screen under **Tools**, with the warning, the backup table and the typed confirmation field.
+3. The **Failsafe Backup** settings screen with the schedule status, the frequency selector and the retention field.
+4. The **Backups** screen right after a run, with the success notice and the new set at the top of the table.
+5. The **Backups** screen after a failed run, with the notice naming the limit that stopped the backup.
 
 == Limitations ==
 
@@ -200,7 +201,7 @@ These limits are known and accepted for version 0.2.0:
 * **ZipArchive.** The PHP `zip` extension is required. Without it, backups and restores fail with an error.
 * **Database objects.** Views, triggers, stored procedures and events are not included in the dump.
 * **Retention and incomplete sets.** Retention only deletes complete sets; a set with one missing file stays until it is deleted by hand.
-* **Scheduled lock.** The lock serializes scheduled runs only. A manual backup started while a scheduled one is running is not blocked.
+* **Concurrent runs.** A second backup started while one is running is refused with a warning instead of running in parallel. The refusal is not queued: you have to try again after the first run finishes.
 * **Sensitive archive.** The ZIP contains `wp-config.php` and the database dump, including password hashes and personal data. Keep it private.
 
 == Roadmap ==

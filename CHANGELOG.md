@@ -33,7 +33,7 @@ Nada disso tem versão ou data definida.
 - Execução do dump com verificação de erro por instrução; falhas em comandos `SET` são registradas e ignoradas, e as demais interrompem a restauração.
 - O backup restaurado e o backup de segurança não são apagados pela rotina de restauração.
 - Agendamento de backups com as frequências horária, duas vezes ao dia, diária e semanal, desligado ou ligado nas configurações e diário por padrão após a ativação.
-- Lock de execução para backups agendados, com transiente de apoio e retomada de lock abandonado após 15 minutos.
+- Lock de execução para backups agendados e manuais, com transiente de apoio e retomada de lock abandonado após 15 minutos.
 - Tela de configurações com o estado do agendamento, a última execução, o último resultado, a próxima execução e o limite de retenção.
 - Avisos na tela de configurações para evento atrasado, evento ausente e `DISABLE_WP_CRON`.
 - Checagem prévia de memória (cerca de 3 vezes o tamanho do banco), disco (cerca de 2 vezes o tamanho mais 16 MB) e tempo de execução (cerca de 5 segundos mais 1 segundo por 2 MB).
@@ -82,7 +82,7 @@ Nada disso tem versão ou data definida.
 - Views, triggers, procedures e events não entram no dump.
 - A retenção não remove conjuntos incompletos; eles ficam até a exclusão manual.
 - O backup de segurança passa pela retenção; um conjunto fora do limite pode ser removido nesse momento, inclusive o que seria restaurado.
-- O lock cobre apenas execuções agendadas; um backup manual pode rodar ao mesmo tempo.
+- Uma segunda execução durante um backup em andamento é recusada com aviso; ela não entra em fila.
 - E-mails de status são enviados apenas por backups manuais; uma falha agendada fica registrada no status e no log.
 - As opções `failsafe_email_on_success` e `failsafe_delete_backups_on_uninstall` não têm campo nas telas de configuração.
 - Backups da 0.1.0 com nomes fixos não são listados nem removidos pela retenção.
