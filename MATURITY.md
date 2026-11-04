@@ -166,13 +166,13 @@ O rollback tem duas partes independentes: **código do plugin** e **banco de dad
 
    ```sh
    cp -a wp-content/failsafe-backups/failsafe-YYYYMMDD-HHMMSS.zip /backup-externo/
-   cp -a wp-content/plugins/failsafe /backup-externo/failsafe-plugin-antes-da-atualizacao
+   cp -a wp-content/plugins/failsafe-backup /backup-externo/failsafe-plugin-antes-da-atualizacao
    ```
 
 3. Anote a versão atual:
 
    ```sh
-   wp plugin get failsafe --field=version
+   wp plugin get failsafe-backup --field=version
    ```
 
 4. Faça o download do `.zip` da versão antiga (o mesmo arquivo usado na instalação) e guarde-o. Sem ele, o rollback de código depende da cópia do diretório.
@@ -185,22 +185,22 @@ Se o painel ainda abre, o caminho mais simples é reinstalar o ZIP anterior. O W
 
 ```sh
 # Evita carregar o plugin com problema durante a desativação.
-wp --skip-plugins=failsafe plugin deactivate failsafe
+wp --skip-plugins=failsafe-backup plugin deactivate failsafe-backup
 
 # Substitui a versão atual pela anterior e ativa a versão antiga.
 wp plugin install /caminho/failsafe-0.1.0.zip --force
-wp plugin activate failsafe
+wp plugin activate failsafe-backup
 
 # Confere.
-wp plugin list --name=failsafe --fields=name,status,version
+wp plugin list --name=failsafe-backup --fields=name,status,version
 ```
 
 **Sem WP-CLI (SSH/SFTP):**
 
 ```sh
-mv wp-content/plugins/failsafe wp-content/plugins/failsafe-com-problema
+mv wp-content/plugins/failsafe-backup wp-content/plugins/failsafe-com-problema
 unzip /caminho/failsafe-0.1.0.zip -d wp-content/plugins/
-chown -R www-data:www-data wp-content/plugins/failsafe  # ajuste para o usuário do servidor
+chown -R www-data:www-data wp-content/plugins/failsafe-backup  # ajuste para o usuário do servidor
 ```
 
 Ao renomear a pasta, o WordPress desativa o plugin sozinho na próxima requisição. Depois, ative a versão anterior em **Plugins**.
@@ -225,7 +225,7 @@ Ao renomear a pasta, o WordPress desativa o plugin sozinho na próxima requisiç
 # Execute a partir da raiz do site.
 
 # 1. Garanta que nenhum backup está rodando e desative o plugin.
-wp --skip-plugins=failsafe plugin deactivate failsafe
+wp --skip-plugins=failsafe-backup plugin deactivate failsafe-backup
 
 # 2. Exporte o estado atual antes de sobrescrever (segurança extra).
 wp db export /backup-externo/antes-do-rollback.sql
@@ -252,7 +252,7 @@ Se o limite de retenção estiver baixo, o backup de segurança criado antes da 
 ### 4.5 Depois do rollback
 
 ```sh
-wp plugin list --name=failsafe --fields=name,status,version
+wp plugin list --name=failsafe-backup --fields=name,status,version
 wp cron event list --hook=failsafe_cron_backup
 wp eval 'var_export( failsafe_cron_status() );'
 curl -s -o /dev/null -w '%{http_code}\n' https://exemplo.com/wp-content/failsafe-backups/

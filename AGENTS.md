@@ -4,7 +4,7 @@
 
 - Comunicação com o dono do projeto e documentação interna em **português**.
 - Código em **inglês**: nomes de variáveis, funções, constantes e comentários.
-- Strings de interface do plugin em **inglês**, dentro de `__( '...', 'failsafe' )` — o plugin vai para o diretório do WordPress.org e será traduzido.
+- Strings de interface do plugin em **inglês**, dentro de `__( '...', 'failsafe-backup' )` — o plugin vai para o diretório do WordPress.org e será traduzido.
 
 ## Padrões de código
 
@@ -46,12 +46,11 @@
 
 ## Limites conhecidos (dívida registrada, não bug)
 
-- **Memória**: o dump é montado em memória (`memory_limit` 128M no container). Banco acima de ~50 MB pode estourar; a correção é gravar em blocos, planejada para a iteração de escala.
+- **Memória**: o dump é gravado em disco em blocos de 500 linhas e a restauração lê o arquivo em blocos de 64 KB, então o uso de memória fica estável. Medição: dump de 37,8 MB com pico de 42 MB sob `memory_limit` 128M.
 - **Timeout**: sob Apache o limite é 30 s; o backup local leva ~9 s. Sites grandes precisam de execução em background (WP-Cron + lock).
 - **nginx**: a proteção do diretório depende de `.htaccess`; em nginx é preciso regra no servidor ou mover o diretório para fora do webroot.
 - **Multisite**: `SHOW TABLES` inclui todas as tabelas da rede num dump único.
 - **Views, triggers, procedures, events** não entram no dump.
-- **Sem `readme.txt`**: necessário antes da submissão ao diretório do WordPress.org.
 
 ## Modo de trabalho
 

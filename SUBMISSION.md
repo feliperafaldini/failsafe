@@ -1,8 +1,8 @@
 # Submissão ao diretório do WordPress.org — Failsafe Backup 0.2.0
 
-- Slug: `failsafe`
+- Slug: `failsafe-backup`
 - Versão / `Stable tag`: `0.2.0`
-- SVN: `https://plugins.svn.wordpress.org/failsafe`
+- SVN: `https://plugins.svn.wordpress.org/failsafe-backup`
 - Repositório local: `~/Projects/failsafe`
 - Estado: **não publicado**. Este documento é uma lista de conferência; nada aqui publica o plugin.
 
@@ -13,23 +13,23 @@
 - [x] **`src/readme.txt`** — readme do diretório em inglês, com descrição, instalação, FAQ, limitações, changelog e `Upgrade Notice`. Declara `Requires at least: 6.2`, `Requires PHP: 8.0`, `Stable tag: 0.2.0` e licença GPLv2 ou superior.
 - [x] **`src/languages/failsafe-backup.pot`** — template de tradução do text domain `failsafe-backup`, gerado pelo WP-CLI 2.12.0. O `Domain Path: /languages` já está no cabeçalho de `src/failsafe.php`. Contém as strings do commit `3f3383e`; precisa ser regerado se o código final tiver strings novas (ver 2.2).
 - [x] **`bin/build.sh`** — gera os dois pacotes a partir de `src/`, respeitando `.distignore`, e lê a versão do cabeçalho do plugin. Exige a extensão PHP `zip` (`ZipArchive`).
-- [x] **`dist/failsafe-backup.zip`** — layout de `trunk/`, arquivos na raiz: 22 arquivos, cerca de 56,8 KB.
-- [x] **`dist/failsafe-backup-0.2.0.zip`** — layout de instalador, tudo dentro de `failsafe-backup/`: 22 arquivos, cerca de 57,5 KB. É este que serve para o formulário de submissão e para **Plugins > Add New > Upload Plugin**.
+- [x] **`dist/failsafe-backup.zip`** — layout de `trunk/`, arquivos na raiz: 22 arquivos, 57.241 bytes no build atual.
+- [x] **`dist/failsafe-backup-0.2.0.zip`** — layout de instalador, tudo dentro de `failsafe-backup/`: 22 arquivos, 57.945 bytes no build atual. É este que serve para o formulário de submissão e para **Plugins > Add New > Upload Plugin**.
 - [x] **Conteúdo do pacote** — `failsafe.php`, `readme.txt`, `uninstall.php`, `admin/`, `includes/`, `assets/admin.js` e `languages/failsafe-backup.pot`. **Não é versionado**: `dist/` está no `.gitignore`. Regerar no commit final.
 - [x] **`tests/` e `stubs/` fora do pacote** — o build empacota apenas `src/`, então os testes e os stubs não entram no ZIP.
 - [x] **`assets/README.md`** — especifica os ícones, banners e os cinco screenshots do diretório, com dimensões e conteúdo. As imagens ainda não existem.
-- [x] **Cabeçalho do plugin** — `src/failsafe.php` declara `Version: 0.2.0`, `Requires at least: 6.2`, `Requires PHP: 8.0`, `Text Domain: failsafe` e `Domain Path: /languages`.
+- [x] **Cabeçalho do plugin** — `src/failsafe.php` declara `Version: 0.2.0`, `Requires at least: 6.2`, `Requires PHP: 8.0`, `Text Domain: failsafe-backup` e `Domain Path: /languages`.
 
 ### 1.2 O que falta e bloqueia o envio
 
 - [x] **`Contributors` confirmado** — `src/readme.txt` traz `Contributors: feliperafaldini`, conta criada em 2026-10-25 e verificada em `https://profiles.wordpress.org/feliperafaldini/` (HTTP 200). É o mesmo login que precisa ter acesso de commit ao SVN.
-- [ ] **Confirmar `Tested up to`** — `src/readme.txt` traz `Tested up to: 7.1`. O container local roda WordPress **7.1.3** (`wp core version`), então o valor é coerente com o ambiente, mas só pode ser publicado depois de confirmar que 7.1 é de fato a versão mais alta testada. Não declarar versão não testada.
-- [ ] **Capturar os screenshots reais** — nenhum PNG existe no repositório. Os cinco arquivos e o conteúdo de cada um estão em `assets/README.md`. O `src/readme.txt` ainda diz que não há imagens e tem **4** legendas; para publicar **5** imagens, a seção `== Screenshots ==` precisa ser reescrita com 5 linhas na mesma ordem dos arquivos.
-- [ ] **Fechar o `plugin check` sem erros** — comando oficial no container:
+- [x] **`Tested up to` confirmado** — `src/readme.txt` traz `Tested up to: 7.1`. Em 2026-10-25, `https://api.wordpress.org/core/version-check/1.7/` devolve **7.1.3** como versão atual do WordPress e o container roda a mesma 7.1.3 (`wp core version`). 7.1 é a série mais alta lançada, então o valor declarado corresponde ao que foi testado.
+- [x] **Screenshots capturados** — `assets/screenshots/` tem `screenshot-1.png` a `screenshot-5.png`, todos 1280 × 720 (conferido em 2026-10-25 lendo o cabeçalho PNG), e o `== Screenshots ==` de `src/readme.txt` já tem 5 legendas na mesma ordem dos arquivos. Faltam só `icon-*` e `banner-*`, que não bloqueiam a submissão (ver `assets/README.md`).
+- [x] **`plugin check` sem erros** — comando oficial no container:
   ```sh
-  docker exec -u www-data failsafe-wordpress-1 php /tmp/wp-cli.phar --path=/var/www/html plugin check failsafe --format=table
+  docker exec -u www-data failsafe-wordpress-1 php /tmp/wp-cli.phar --path=/var/www/html plugin check failsafe-backup --format=table
   ```
-  Execução de 2026-10-24 contra o plugin montado: com o código desta branch (commit `3f3383e`), **8 `ERROR` e 13 `WARNING`**; com as correções já presentes na master (commit `5d202ec`), **`Success: Checks complete. No errors found.`** O envio exige a segunda saída no commit que for para o trunk. Reexecutar depois de mesclar as correções e não fechar este item enquanto houver `ERROR`.
+  Execução de 2026-10-25 contra o HEAD `77ba040`: **`Success: Checks complete. No errors found.`** Reexecutar no commit que for para o trunk.
 - [x] **ZIP do formulário de submissão** — `./bin/build.sh` agora gera `dist/failsafe-backup-0.2.0.zip` com a pasta `failsafe-backup/` na raiz, que é o formato aceito pelo formulário e pelo instalador.
 - [ ] **Submeter o plugin e aguardar a criação do repositório SVN** — em 2026-10-24, `https://plugins.svn.wordpress.org/failsafe-backup/` responde **404** (os repositórios de `akismet` e `hello-dolly` respondem 200). O checkout da seção 3 só funciona depois que o plugin for aprovado pelo diretório e o repositório SVN for criado; o primeiro envio é o formulário de submissão com o ZIP do plugin, não o `svn ci`.
 - [ ] **Enviar por SVN** — trunk, tag `0.2.0` e assets, depois da aprovação. Roteiro na seção 3.
@@ -90,7 +90,7 @@ Os comandos usam o repositório em `~/Projects/failsafe` e um checkout em `~/fai
 ### 3.1 Checkout (primeira vez)
 
 ```sh
-svn checkout https://plugins.svn.wordpress.org/failsafe ~/failsafe-svn
+svn checkout https://plugins.svn.wordpress.org/failsafe-backup ~/failsafe-svn
 ```
 
 Nas vezes seguintes:
@@ -136,15 +136,15 @@ O SVN pede o usuário e a senha da conta WordPress.org. Não grave a senha em sc
 ### 3.5 Criar a tag
 
 ```sh
-svn copy https://plugins.svn.wordpress.org/failsafe/trunk \
-         https://plugins.svn.wordpress.org/failsafe/tags/0.2.0 \
+svn copy https://plugins.svn.wordpress.org/failsafe-backup/trunk \
+         https://plugins.svn.wordpress.org/failsafe-backup/tags/0.2.0 \
          -m "Tag version 0.2.0"
 ```
 
 Conferir:
 
 ```sh
-svn ls https://plugins.svn.wordpress.org/failsafe/tags/0.2.0/
+svn ls https://plugins.svn.wordpress.org/failsafe-backup/tags/0.2.0/
 ```
 
 A tag precisa ser criada **depois** do commit do trunk e o `Stable tag` do `readme.txt` dentro dela precisa continuar `0.2.0`.
@@ -170,8 +170,8 @@ O `svn propset svn:mime-type image/png` evita que o navegador baixe o PNG em vez
 
 ```sh
 svn ls https://plugins.svn.wordpress.org/failsafe-backup/
-svn ls https://plugins.svn.wordpress.org/failsafe/trunk/
-svn ls https://plugins.svn.wordpress.org/failsafe/assets/
+svn ls https://plugins.svn.wordpress.org/failsafe-backup/trunk/
+svn ls https://plugins.svn.wordpress.org/failsafe-backup/assets/
 ```
 
 Conferir também a página `https://wordpress.org/plugins/failsafe-backup/` depois da propagação. O diretório pode levar de alguns minutos a algumas horas para atualizar.

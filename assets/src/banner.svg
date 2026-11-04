@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="772" height="250" viewBox="0 0 772 250">
+  <!-- Failsafe Backup — banner 772x250 (mesmo SVG renderizado em 2x para 1544x500) -->
+  <rect width="772" height="250" fill="#111416"/>
+
+  <g transform="translate(41 -4)">
+
+  <!-- Marca: brackets + três conjuntos datados, reduzida do ícone -->
+  <g transform="translate(46 40) scale(1.32)">
+    <g fill="none" stroke="#454f5a" stroke-width="4" stroke-linecap="square">
+      <path d="M35 26 H22 V102 H35"/>
+      <path d="M93 26 H106 V102 H93"/>
+    </g>
+    <rect x="41" y="34" width="46" height="13" fill="#9fcbf7"/>
+    <rect x="41" y="57.5" width="46" height="13" fill="#5b6774"/>
+    <rect x="41" y="81" width="46" height="13" fill="#39424c"/>
+  </g>
+
+  <!-- Separador -->
+  <line x1="240" y1="62" x2="240" y2="190" stroke="#2b3238" stroke-width="2"/>
+
+  <!-- Nome -->
+  <text x="272" y="122" font-family="JetBrainsMono Nerd Font, monospace" font-size="50"
+        font-weight="700" letter-spacing="5" fill="#e2e2e6">FAILSAFE</text>
+  <text x="274" y="162" font-family="JetBrainsMono Nerd Font, monospace" font-size="21"
+        font-weight="500" letter-spacing="13" fill="#9fcbf7">BACKUP</text>
+
+  <!-- Assinatura -->
+  <text x="274" y="196" font-family="JetBrainsMono Nerd Font, monospace" font-size="13"
+        font-weight="400" letter-spacing="2.4" fill="#6f7a86">DATED BACKUPS · RESTORE FROM ADMIN</text>
+  </g>
+</svg>

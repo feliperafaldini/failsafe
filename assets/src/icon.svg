@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Failsafe Backup — ícone. Fundo preto, um único acento. -->
+  <rect width="128" height="128" fill="#111416"/>
+
+  <!-- Brackets: conteúdo contido/protegido -->
+  <g fill="none" stroke="#454f5a" stroke-width="4" stroke-linecap="square">
+    <path d="M35 26 H22 V102 H35"/>
+    <path d="M93 26 H106 V102 H93"/>
+  </g>
+
+  <!-- Três conjuntos datados; o mais recente em acento -->
+  <g>
+    <rect x="41" y="34" width="46" height="13" fill="#9fcbf7"/>
+    <rect x="41" y="57.5" width="46" height="13" fill="#5b6774"/>
+    <rect x="41" y="81" width="46" height="13" fill="#39424c"/>
+  </g>
+</svg>

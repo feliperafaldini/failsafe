@@ -91,7 +91,7 @@ Os containers são `failsafe-wordpress-1` e `failsafe-db-1`. As credenciais loca
 ./bin/build.sh
 ```
 
-O script empacota `src/` em dois arquivos: `dist/failsafe-backup.zip` (arquivos na raiz, para o `trunk/` do SVN) e `dist/failsafe-<versão>.zip` (tudo dentro de `failsafe-backup/`, para o instalador de plugins). `src/assets/admin.js` entra nos dois; `tests/`, `stubs/`, `bin/` e os arquivos de repositório ficam fora.
+O script empacota `src/` em dois arquivos: `dist/failsafe-backup.zip` (arquivos na raiz, para o `trunk/` do SVN) e `dist/failsafe-backup-<versão>.zip` (tudo dentro de `failsafe-backup/`, para o instalador de plugins). `src/assets/admin.js` entra nos dois; `tests/`, `stubs/`, `bin/` e os arquivos de repositório ficam fora.
 
 ## Testes
 
