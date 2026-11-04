@@ -6,6 +6,30 @@ This repository holds the plugin and the local development environment. Only the
 
 Versão em português: [README.pt-BR.md](README.pt-BR.md).
 
+**Status:** 0.2.0, in development. Not published in the WordPress.org plugin directory yet.
+
+## Install
+
+The plugin ships from this repository as a ZIP built out of `src/`:
+
+```sh
+./bin/build.sh
+```
+
+Then upload `dist/failsafe-backup-<version>.zip` under **Plugins > Add new > Upload plugin**. The build only packs files; it needs no Node, Docker or database.
+
+There is no directory listing yet, so `wp plugin install failsafe-backup` does not work and will not until the plugin is approved.
+
+## Why this plugin
+
+It does one thing: a timestamped `.sql` dump plus a `.zip` of the site files, restorable from the admin, optionally on a schedule.
+
+The scope is deliberately narrow. It has no remote destination, no incremental backup, no multisite and no restore of site files from the screen. If you need any of those, UpdraftPlus or BackWPup already cover them and this plugin is not a replacement. The reason to pick this one is the opposite: the whole plugin lives in `src/`, with tests that run against a real WordPress and MySQL, so you can read it end to end and hook into it.
+
+## Code map
+
+File-by-file map of `src/`, `tests/`, `bin/` and the build inputs: [docs/layout.md](docs/layout.md).
+
 ## Current state (0.2.0)
 
 What works today:
@@ -41,40 +65,6 @@ What does **not** exist yet: multisite support, restoring site files from the ad
 - For restores, permission to run `DROP TABLE`, `CREATE TABLE` and `INSERT`, because the dump recreates the tables.
 - WP-Cron with site traffic, or a system cron calling `wp-cron.php`, so scheduled backups run on time.
 - Single-site install; multisite is not supported.
-
-## Layout
-
-- `src/` — plugin code (this is what goes to the official directory).
-  - `src/failsafe.php` — header, constants (`FAILSAFE_VERSION`, `FAILSAFE_BACKUP_DIR`, `FAILSAFE_RETENTION_DEFAULT`) and the `require_once` map.
-  - `src/includes/storage.php` — names, paths, listing, deletion, retention and atomic writes.
-  - `src/includes/limits.php` — database and site-file estimates, plus memory, disk and time checks.
-  - `src/includes/dump.php` — streaming dump writer.
-  - `src/includes/notifications.php` — status e-mail composition and delivery.
-  - `src/includes/restore.php` — incremental SQL parser, allowlist, dump execution, validated ZIP extraction and temp directory cleanup.
-  - `src/includes/cron.php` — scheduled event, frequencies, lock, execution and last-result storage.
-  - `src/admin/setup.php` — creates and protects the backup directory.
-  - `src/admin/menu.php` — **Failsafe** menu, page hook and script loading.
-  - `src/admin/actions.php` — manual backup handler plus the path, ZIP and orchestration functions.
-  - `src/admin/backups-page.php` — **Backups** page, table, empty state and notices.
-  - `src/admin/download.php` — `.zip` and `.sql` downloads through `admin-post.php`.
-  - `src/admin/delete.php` — deletion by POST with a per-set nonce.
-  - `src/admin/dashboard.php` — dashboard widget.
-  - `src/admin/restore.php` — screen and handler for **Tools > Failsafe Restore**.
-  - `src/admin/settings.php` — settings screen, options, sanitization and schedule status.
-  - `src/admin/format.php` — date and size formatting.
-  - `src/admin/partials.php` — backup button and table actions.
-  - `src/uninstall.php` — removes the options and, with opt-in, the backups.
-  - `src/assets/admin.js` — confirmation for destructive actions marked with `data-confirm`.
-  - `src/languages/failsafe-backup.pot` — translation template.
-  - `src/readme.txt` — WordPress.org directory text.
-- `bin/build.sh` — builds both packages from `src/`.
-- `tests/` — lint, unit tests, streaming, cron, settings, round-trip and the disaster protocol. They live outside `src/` so they never ship inside the plugin package.
-- `stubs/` — WordPress stubs for static analysis. Not part of the package.
-- `docker-compose.yml` — local environment; not part of the published plugin.
-- `.distignore` — files that must not enter the package.
-- `CHANGELOG.md` / `CHANGELOG.pt-BR.md` — version history in English and Portuguese.
-- `MATURITY.md` / `SUBMISSION.md` — maturity assessment and publishing checklist (Portuguese).
-- `AGENTS.md` — project conventions (Portuguese).
 
 ## Running locally
 
